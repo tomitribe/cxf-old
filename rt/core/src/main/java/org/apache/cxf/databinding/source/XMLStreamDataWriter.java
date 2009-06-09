@@ -51,6 +51,22 @@ public class XMLStreamDataWriter implements DataWriter<XMLStreamWriter> {
             if (obj instanceof DataSource) {
                 DataSource ds = (DataSource)obj;
                 reader = StaxUtils.createXMLStreamReader(ds.getInputStream());
+            } else if (obj instanceof Node) {
+                Node nd = (Node)obj;
+                if (writer instanceof W3CDOMStreamWriter
+                    && ((W3CDOMStreamWriter)writer).getCurrentNode() != null) {
+                    W3CDOMStreamWriter dw = (W3CDOMStreamWriter)writer;
+                    
+                    if (nd.getOwnerDocument() == dw.getCurrentNode().getOwnerDocument()) {
+                        dw.getCurrentNode().appendChild(nd);
+                        return;
+                    } else if (nd instanceof DocumentFragment) {
+                        nd = dw.getDocument().importNode(nd, true);
+                        dw.getCurrentNode().appendChild(nd);
+                        return;
+                    }
+                }
+                StaxUtils.writeNode(nd, writer, true);
             } else {
                 Source s = (Source) obj;
                 if (s instanceof DOMSource
