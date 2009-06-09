@@ -20,7 +20,6 @@
 package org.apache.cxf.binding.soap.saaj;
 
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ResourceBundle;
@@ -95,8 +94,12 @@ public class SAAJOutInterceptor extends AbstractSoapInterceptor {
             //as the SOAPMessage already has everything in place, we do not need XMLStreamWriter to write
             //anything for us, so we just set XMLStreamWriter's output to a dummy output stream.         
             try {
-                XMLStreamWriter dummyWriter = StaxUtils.getXMLOutputFactory()
-                    .createXMLStreamWriter(new ByteArrayOutputStream());
+                XMLStreamWriter dummyWriter = StaxUtils.createXMLStreamWriter(new OutputStream() {
+                        public void write(int b) throws IOException {
+                        }
+                        public void write(byte b[], int off, int len) throws IOException {
+                        }                        
+                    });
                 message.setContent(XMLStreamWriter.class, dummyWriter);
             } catch (XMLStreamException e) {
                 // do nothing

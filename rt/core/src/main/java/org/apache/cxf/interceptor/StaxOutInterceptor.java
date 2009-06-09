@@ -63,7 +63,10 @@ public class StaxOutInterceptor extends AbstractPhaseInterceptor<Message> {
         String encoding = getEncoding(message);
         
         try {
-            writer = getXMLOutputFactory(message).createXMLStreamWriter(os, encoding);
+            XMLOutputFactory factory = getXMLOutputFactory(message);
+            synchronized (factory) {
+                writer = factory.createXMLStreamWriter(os, encoding);
+            }
         } catch (XMLStreamException e) {
             throw new Fault(new org.apache.cxf.common.i18n.Message("STREAM_CREATE_EXC", BUNDLE), e);
         }
