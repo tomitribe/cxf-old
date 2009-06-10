@@ -44,4 +44,38 @@ public class DataHandlerType extends AbstractXOPType {
     protected String getContentType(Object object, Context context) {
         return ((DataHandler)object).getContentType();
     }
+
+    protected Object wrapBytes(byte[] bareBytes, String contentType) {
+        // for the benefit of those who are working with string data, we have the following
+        // trickery
+        String charset = null;
+        if (contentType != null
+            && contentType.indexOf("text/") != -1
+            && contentType.indexOf("charset") != -1) {
+            charset = contentType.substring(contentType.indexOf("charset") + 8);
+            if (charset.indexOf(";") != -1) {
+                charset = charset.substring(0, charset.indexOf(";"));
+            }
+        }
+        String normalizedEncoding = HttpHeaderHelper.mapCharset(charset, "UTF-8");
+        try {
+            String stringData = new String(bareBytes, normalizedEncoding);
+            return new DataHandler(stringData, contentType);
+        } catch (UnsupportedEncodingException e) {
+            // this space intentionally left blank.
+        }
+        return new DataHandler(bareBytes, contentType);
+    }
+    
+    protected byte[] getBytes(Object object) {
+        DataHandler handler = (DataHandler) object;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            InputStream stream = handler.getInputStream();
+            IOUtils.copy(stream, baos);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return baos.toByteArray();
+    }
 }
