@@ -29,7 +29,6 @@ import javax.xml.soap.SOAPConstants;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
-import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 
@@ -93,17 +92,13 @@ public class SAAJOutInterceptor extends AbstractSoapInterceptor {
         } else {
             //as the SOAPMessage already has everything in place, we do not need XMLStreamWriter to write
             //anything for us, so we just set XMLStreamWriter's output to a dummy output stream.         
-            try {
-                XMLStreamWriter dummyWriter = StaxUtils.createXMLStreamWriter(new OutputStream() {
-                        public void write(int b) throws IOException {
-                        }
-                        public void write(byte b[], int off, int len) throws IOException {
-                        }                        
-                    });
-                message.setContent(XMLStreamWriter.class, dummyWriter);
-            } catch (XMLStreamException e) {
-                // do nothing
-            }
+            XMLStreamWriter dummyWriter = StaxUtils.createXMLStreamWriter(new OutputStream() {
+                    public void write(int b) throws IOException {
+                    }
+                    public void write(byte b[], int off, int len) throws IOException {
+                    }                        
+                });
+            message.setContent(XMLStreamWriter.class, dummyWriter);
         }
         //must turn off mtom when using SAAJ so binary is properly inlined
         message.put(org.apache.cxf.message.Message.MTOM_ENABLED, false);
