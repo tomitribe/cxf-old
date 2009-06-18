@@ -21,12 +21,12 @@ package demo.ws_rm.client;
 
 import java.lang.reflect.UndeclaredThrowableException;
 
-import demo.ws_rm.common.MessageLossSimulator;
-
 import org.apache.cxf.Bus;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.hello_world_soap_http.Greeter;
 import org.apache.cxf.hello_world_soap_http.GreeterService;
+
+import demo.ws_rm.common.MessageLossSimulator;
 
 
 public final class Client {
