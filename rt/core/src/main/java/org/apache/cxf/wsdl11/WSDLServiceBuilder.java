@@ -509,6 +509,9 @@ public class WSDLServiceBuilder {
         this.copyExtensionAttributes(opInfo, op);
         Input input = op.getInput();
         if (input != null) {
+            if (input.getMessage() == null) {
+                throw new WSDLRuntimeException(LOG, "NO_MESSAGE", "input", op.getName(), input.getName());
+            }
             MessageInfo minfo = opInfo.createMessage(input.getMessage().getQName());
             opInfo.setInput(input.getName(), minfo);
             buildMessage(minfo, input.getMessage());
@@ -517,6 +520,9 @@ public class WSDLServiceBuilder {
         }
         Output output = op.getOutput();
         if (output != null) {
+            if (output.getMessage() == null) {
+                throw new WSDLRuntimeException(LOG, "NO_MESSAGE", "output", op.getName(), output.getName());
+            }
             MessageInfo minfo = opInfo.createMessage(output.getMessage().getQName());
             opInfo.setOutput(output.getName(), minfo);
             buildMessage(minfo, output.getMessage());
