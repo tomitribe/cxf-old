@@ -424,7 +424,11 @@ public class EndpointImpl extends javax.xml.ws.Endpoint
     }
 
     public void setWsdlLocation(String wsdlLocation) {
-        this.wsdlLocation = wsdlLocation;
+        if (wsdlLocation != null) {
+            this.wsdlLocation = new String(wsdlLocation);
+        } else {
+            this.wsdlLocation = null;
+        }
     }
 
     public void setBindingUri(String binding) {
