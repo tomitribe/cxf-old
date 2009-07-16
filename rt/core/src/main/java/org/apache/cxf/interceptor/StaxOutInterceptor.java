@@ -64,8 +64,12 @@ public class StaxOutInterceptor extends AbstractPhaseInterceptor<Message> {
         
         try {
             XMLOutputFactory factory = getXMLOutputFactory(message);
-            synchronized (factory) {
-                writer = factory.createXMLStreamWriter(os, encoding);
+            if (factory == null) {
+                writer = StaxUtils.createXMLStreamWriter(os, encoding);
+            } else {
+                synchronized (factory) {
+                    writer = factory.createXMLStreamWriter(os, encoding);
+                }
             }
         } catch (XMLStreamException e) {
             throw new Fault(new org.apache.cxf.common.i18n.Message("STREAM_CREATE_EXC", BUNDLE), e);
@@ -122,9 +126,8 @@ public class StaxOutInterceptor extends AbstractPhaseInterceptor<Message> {
                 }
             }
             return xif;
-        } else {
-            return StaxUtils.getXMLOutputFactory();
         }
+        return null;
     }
     
     public class StaxOutEndingInterceptor extends AbstractPhaseInterceptor<Message> {
