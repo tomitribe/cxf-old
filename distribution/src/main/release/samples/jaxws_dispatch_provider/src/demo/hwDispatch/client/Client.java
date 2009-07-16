@@ -119,8 +119,11 @@ public final class Client {
         System.out.println("Invoking server through Dispatch interface using DOMSource in PAYLOAD Mode");
         DOMSource domRespPayload = dispDOMSrcPayload.invoke(domReqPayload);
 
-        System.out.println("Response from server: "
-                           + fetchElementByName(domRespPayload.getNode(), "greetMeResponse").getTextContent());
+        Element responseEl = fetchElementByName(domRespPayload.getNode(), "greetMeResponse");
+        if (responseEl == null) {
+            responseEl = fetchElementByName(domRespPayload.getNode(), "responseType");
+        }
+        System.out.println("Response from server: " + el.getTextContent());
 
         System.exit(0);
     }

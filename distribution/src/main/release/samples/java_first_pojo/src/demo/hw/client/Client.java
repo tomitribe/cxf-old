@@ -19,8 +19,9 @@
 
 package demo.hw.client;
 
-import org.apache.cxf.frontend.ClientProxyFactoryBean;
 import demo.hw.server.HelloWorld;
+
+import org.apache.cxf.frontend.ClientProxyFactoryBean;
 
 public final class Client {
 
