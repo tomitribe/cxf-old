@@ -99,7 +99,7 @@ public final class StaxUtils {
      * Return a cached, namespace-aware, factory.
      * @return
      */
-    private static XMLInputFactory getXMLInputFactory() {
+    public static XMLInputFactory getXMLInputFactory() {
         XMLInputFactory f = NS_AWARE_INPUT_FACTORY_POOL.poll();
         if (f == null) {
             f = XMLInputFactory.newInstance();
@@ -108,11 +108,11 @@ public final class StaxUtils {
         return f;
     }
     
-    private static void returnXMLInputFactory(XMLInputFactory factory) {
+    public static void returnXMLInputFactory(XMLInputFactory factory) {
         NS_AWARE_INPUT_FACTORY_POOL.offer(factory);
     }
     
-    private static XMLOutputFactory getXMLOutputFactory() {
+    public static XMLOutputFactory getXMLOutputFactory() {
         XMLOutputFactory f = OUTPUT_FACTORY_POOL.poll();
         if (f == null) {
             f = XMLOutputFactory.newInstance();
@@ -120,7 +120,7 @@ public final class StaxUtils {
         return f;
     }
     
-    private static void returnXMLOutputFactory(XMLOutputFactory factory) {
+    public static void returnXMLOutputFactory(XMLOutputFactory factory) {
         OUTPUT_FACTORY_POOL.offer(factory);
     }
     
