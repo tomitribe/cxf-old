@@ -123,7 +123,7 @@ public final class Client {
         if (responseEl == null) {
             responseEl = fetchElementByName(domRespPayload.getNode(), "responseType");
         }
-        System.out.println("Response from server: " + el.getTextContent());
+        System.out.println("Response from server: " + responseEl.getTextContent());
 
         System.exit(0);
     }
