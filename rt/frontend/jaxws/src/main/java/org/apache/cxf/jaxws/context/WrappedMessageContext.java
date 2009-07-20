@@ -216,23 +216,15 @@ public class WrappedMessageContext implements MessageContext {
             } else if (MessageContext.MESSAGE_OUTBOUND_PROPERTY.equals(key)) {
                 ret = isOutbound();
             } else if (MessageContext.HTTP_REQUEST_HEADERS.equals(key)) {
-                if (!isResponse()) {
+                if (!isOutbound() && !isRequestor()) {
+                    // HTTP_REQUEST_HEADERS only available on inbound messages of the server side
                     ret = message.get(Message.PROTOCOL_HEADERS);
-                } else if (reqMessage != null && !isRequestor()) {
-                    ret = reqMessage.get(Message.PROTOCOL_HEADERS);
                 }
             } else if (MessageContext.HTTP_RESPONSE_HEADERS.equals(key)) {
-                Map mp = null;
-                if (isResponse()) {
-                    mp = (Map)message.get(Message.PROTOCOL_HEADERS);
-                } else if (exchange != null) {
-                    //may have to create the out message and add the headers
-                    Message tmp = createResponseMessage();
-                    if (tmp != null) {
-                        ret = (Map)tmp.get(Message.PROTOCOL_HEADERS);
-                    }
+                if (!isOutbound() && isRequestor()) {
+                    // HTTP_RESPONSE_HEADERS only available on inbound messages of the requestor side
+                    ret = message.get(Message.PROTOCOL_HEADERS);
                 }
-                ret = mp;
             } else if (BindingProvider.USERNAME_PROPERTY.equals(key)) {
                 AuthorizationPolicy authPolicy =
                     (AuthorizationPolicy)message.get(AuthorizationPolicy.class.getName());
