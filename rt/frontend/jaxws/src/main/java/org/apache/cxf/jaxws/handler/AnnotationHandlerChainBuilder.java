@@ -36,6 +36,7 @@ import javax.xml.ws.WebServiceException;
 import javax.xml.ws.handler.Handler;
 
 import org.apache.cxf.Bus;
+import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.StringUtils;
@@ -144,7 +145,7 @@ public class AnnotationHandlerChainBuilder extends HandlerChainBuilder {
                     String seiClassName = ws.endpointInterface().trim();
                     Class seiClass = null;
                     try {
-                        seiClass = clz.getClassLoader().loadClass(seiClassName);
+                        seiClass = ClassLoaderUtils.loadClass(seiClassName, clz);
                     } catch (ClassNotFoundException e) {
                         throw new WebServiceException(BUNDLE.getString("SEI_LOAD_FAILURE_EXC"), e);
                     }
