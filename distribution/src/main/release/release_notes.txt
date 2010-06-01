@@ -1,11 +1,12 @@
-Apache CXF 2.0.12 Release Notes
+Apache CXF 2.0.13 Release Notes
 
 1. Overview
 
-Apache CXF 2.0.12 delivers the latest set of patches for the 2.0.x series
-fixing another 32 reported JIRA issues.
+Apache CXF 2.0.13 delivers the latest set of patches for the 2.0.x series.  
+This release specifically is being done to address a security vulnerability
+for which information will be forth coming.
 
-IMPORTANT NOTE:  2.0.12 is the last scheduled release for the 2.0.x series of 
+IMPORTANT NOTE:  2.0.13 is the last scheduled release for the 2.0.x series of 
 Apache CXF.   Users are VERY strongly encouraged to upgrade to the 2.2.x 
 series as soon as possible.
 
@@ -72,48 +73,4 @@ http://issues.apache.org/jira/browse/CXF
 
 6. Specific issues, features, and improvements fixed in this version:
 
-** Bug
-    * [CXF-2184] - XSD import statements do not apply given confguration
-    * [CXF-2203] - AttachmentSerializer content id incorrect
-    * [CXF-2205] - Aegis databinding always trims strings
-    * [CXF-2207] - JMS Transport send MTOM message as a TextMessage. The attachment becomes wrong.
-    * [CXF-2210] - Change Jsr250BeanPostProcessor bean defination in cxf.xml
-    * [CXF-2211] - Investigate possible OOM exception caused by Continuations
-    * [CXF-2212] - SAAJInInterceptor creates a SAAJ SOAPFault with only one "Detail" child
-    * [CXF-2213] - Currently CXF always produces true/false value for for mustUnderstand attribute irrespective of the SOAP version on the wire
-    * [CXF-2243] - JMSFactory.createJmsListener does not use property from JMSConfiguration to set the receiveTimeout on the constructed Spring DMLC
-    * [CXF-2271] - autoNameResolution not working for wrapper elements
-    * [CXF-2274] - HTTP transport assumes UTF-8 instead of ISO-8859-1 if charset not specified
-    * [CXF-2279] - Current ConfigureImpl is not application refresh friendly
-    * [CXF-2292] - Java first one-way operations generating faults
-    * [CXF-2302] - HTTP continuations are not working correctly if keep-alives are on
-    * [CXF-2317] - NPE in WS-RM RetransmissionQueueImpl
-    * [CXF-2318] - Invalid message created when using MTOM and WS-RM
-    * [CXF-2344] - attachment headers not copied into SAAJ message
-    * [CXF-2348] - MessageContext properties (HTTP_REQUEST_HEADERS & HTTP_RESPONSE_HEADERS) should not be available during all the phases of the invocation
-    * [CXF-2349] - Space in namespace localName causes org.w3c.dom.DOMException: INVALID_CHARACTER_ERR
-    * [CXF-2357] - The equals() method of JCA connection handle always return false.  
-    * [CXF-2359] - wss4jin stuff is only verifying the first signature and first timestamp
-    * [CXF-2360] - soap.xsd in the soapbinding has the wrong elements
-    * [CXF-2363] - ReplyDestinationName settings not used in JMSDestination
-
-** Improvement
-    * [CXF-2113] - http:client configuration with Spring PropertyPlaceholderConfigurer
-    * [CXF-2186] - Validate WSS headers using new checkReceiverResultsAnyOrder method in WSHandler.
-    * [CXF-2246] - jaxws:endpoint should support to configure the transportId
-    * [CXF-2316] - Allow JMS replyTo destination value be set on the outgoing messsage for a one-way call
-    * [CXF-2327] - [SoapBindingFactory] Verify QName properties before calling constructor
-    * [CXF-2343] - Improve Message Performance Under High Volume with Low Latency Consumers
-    * [CXF-2350] - JBIConduitOutputStream should copy properties between JBI NormalizedMessage and cxf message invocation context
-    * [CXF-2361] - Adding JBIBindingConfigure to configure the JBIBinding from the spring configuration 
-    * [CXF-2366] - Allow for 1-way over JMS requests to set replyTo destination in JMS message when explicitly enabled
-
-
-
-
-
-
-
-
-
-
+Fix potential DTD handling exploit.
