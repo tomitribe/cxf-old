@@ -25,17 +25,17 @@ import org.apache.cxf.continuations.Continuation;
 import org.apache.cxf.continuations.ContinuationInfo;
 import org.apache.cxf.continuations.SuspendedInvocationException;
 import org.apache.cxf.message.Message;
-import org.mortbay.jetty.RetryRequest;
-import org.mortbay.util.ajax.ContinuationSupport;
+import org.eclipse.jetty.RetryRequest;
+import org.eclipse.jetty.continuation.ContinuationSupport;
 
 public class JettyContinuationWrapper implements Continuation {
 
-    private org.mortbay.util.ajax.Continuation continuation;
+    private org.eclipse.jetty.continuation.Continuation continuation;
     private Message message;
     
     
     public JettyContinuationWrapper(HttpServletRequest request, Message m) {
-        continuation = ContinuationSupport.getContinuation(request, null); 
+        continuation = ContinuationSupport.getContinuation(request); 
         message = m;
     }
 
@@ -118,7 +118,7 @@ public class JettyContinuationWrapper implements Continuation {
         return m;
     }
     
-    public org.mortbay.util.ajax.Continuation getContinuation() {
+    public org.eclipse.jetty.continuation.Continuation getContinuation() {
         return continuation;
     }
     

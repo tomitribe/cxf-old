@@ -25,7 +25,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mortbay.jetty.handler.ContextHandler;
+import org.eclipse.jetty.server.handler.ContextHandler;
 
 public class JettyContextInspectorTest extends Assert {
     private static final String CONTEXT_PATH = "/foo/bar";

@@ -27,7 +27,7 @@ import org.apache.cxf.message.MessageImpl;
 import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mortbay.util.ajax.Continuation;
+import org.eclipse.jetty.continuation.Continuation;
 
 public class JettyContinuationWrapperTest extends Assert {
 
@@ -59,7 +59,7 @@ public class JettyContinuationWrapperTest extends Assert {
         EasyMock.replay(c);
         
         HttpServletRequest request = EasyMock.createMock(HttpServletRequest.class);
-        request.getAttribute("org.mortbay.jetty.ajax.Continuation");
+        request.getAttribute("org.eclipse.jetty.ajax.Continuation");
         EasyMock.expectLastCall().andReturn(c);
         EasyMock.replay(request);
         

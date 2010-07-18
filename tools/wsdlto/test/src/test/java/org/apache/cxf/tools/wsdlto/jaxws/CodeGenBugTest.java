@@ -45,8 +45,8 @@ import org.apache.cxf.wsdl11.WSDLRuntimeException;
 
 import org.junit.Test;
 
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.handler.ResourceHandler;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ResourceHandler;
 
 
 public class CodeGenBugTest extends AbstractCodeGenTest {

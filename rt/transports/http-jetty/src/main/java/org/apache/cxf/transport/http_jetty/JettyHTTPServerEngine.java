@@ -38,21 +38,21 @@ import org.apache.cxf.configuration.jsse.TLSServerParameters;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.transport.HttpUriMapper;
 import org.apache.cxf.transport.https_jetty.JettySslConnectorFactory;
-import org.mortbay.component.Container;
-import org.mortbay.jetty.AbstractConnector;
-import org.mortbay.jetty.Connector;
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.handler.ContextHandler;
-import org.mortbay.jetty.handler.ContextHandlerCollection;
-import org.mortbay.jetty.handler.DefaultHandler;
-import org.mortbay.jetty.handler.HandlerList;
-import org.mortbay.jetty.nio.SelectChannelConnector;
-import org.mortbay.jetty.security.SslSocketConnector;
-import org.mortbay.jetty.servlet.HashSessionIdManager;
-import org.mortbay.jetty.servlet.HashSessionManager;
-import org.mortbay.jetty.servlet.SessionHandler;
-import org.mortbay.thread.QueuedThreadPool;
+import org.eclipse.jetty.util.component.Container;
+import org.eclipse.jetty.server.AbstractConnector;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.server.ssl.SslSocketConnector;
+import org.eclipse.jetty.server.session.HashSessionIdManager;
+import org.eclipse.jetty.server.session.HashSessionManager;
+import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 
 /**
@@ -339,9 +339,9 @@ public class JettyHTTPServerEngine
                
                 AbstractConnector aconn = (AbstractConnector) connector;
                 if (isSetThreadingParameters()) {
-                    if (aconn.getThreadPool() instanceof org.mortbay.thread.BoundedThreadPool) {
-                        org.mortbay.thread.BoundedThreadPool pool 
-                            = (org.mortbay.thread.BoundedThreadPool)aconn.getThreadPool();
+                    if (aconn.getThreadPool() instanceof org.eclipse.thread.BoundedThreadPool) {
+                        org.eclipse.thread.BoundedThreadPool pool 
+                            = (org.eclipse.thread.BoundedThreadPool)aconn.getThreadPool();
                         if (getThreadingParameters().isSetMinThreads()) {
                             pool.setMinThreads(getThreadingParameters().getMinThreads());
                         }

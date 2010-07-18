@@ -72,10 +72,10 @@ import org.easymock.classextension.EasyMock;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mortbay.jetty.HttpFields;
-import org.mortbay.jetty.Request;
-import org.mortbay.jetty.Response;
-import org.mortbay.util.ajax.Continuation;
+import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.continuation.Continuation;
 
 public class JettyHTTPDestinationTest extends Assert {
     protected static final String AUTH_HEADER = "Authorization";
@@ -218,7 +218,7 @@ public class JettyHTTPDestinationTest extends Assert {
         EasyMock.replay(continuation);
         
         HttpServletRequest httpRequest = EasyMock.createMock(HttpServletRequest.class);
-        httpRequest.getAttribute("org.mortbay.jetty.ajax.Continuation");
+        httpRequest.getAttribute("org.eclipse.jetty.ajax.Continuation");
         EasyMock.expectLastCall().andReturn(continuation);
         EasyMock.replay(httpRequest);
         
@@ -238,7 +238,7 @@ public class JettyHTTPDestinationTest extends Assert {
         assertSame("Message is lost", m, mi);
         EasyMock.verify(continuation);
         EasyMock.reset(httpRequest);
-        httpRequest.getAttribute("org.mortbay.jetty.ajax.Continuation");
+        httpRequest.getAttribute("org.eclipse.jetty.ajax.Continuation");
         EasyMock.expectLastCall().andReturn(null);
         mi = testDestination.retrieveFromContinuation(httpRequest);
         assertNotSame("New message expected", m, mi);
@@ -249,7 +249,7 @@ public class JettyHTTPDestinationTest extends Assert {
         
         Continuation continuation = EasyMock.createMock(Continuation.class);
         HttpServletRequest httpRequest = EasyMock.createMock(HttpServletRequest.class);
-        httpRequest.getAttribute("org.mortbay.jetty.ajax.Continuation");
+        httpRequest.getAttribute("org.eclipse.jetty.ajax.Continuation");
         EasyMock.expectLastCall().andReturn(continuation);
         EasyMock.replay(httpRequest);
         
@@ -748,7 +748,7 @@ public class JettyHTTPDestinationTest extends Assert {
                 EasyMock.expect(request.getQueryString()).andReturn(query);    
                 EasyMock.expect(request.getHeader("Accept")).andReturn("*/*");  
                 EasyMock.expect(request.getContentType()).andReturn("text/xml charset=utf8").times(2);
-                EasyMock.expect(request.getAttribute("org.mortbay.jetty.ajax.Continuation")).andReturn(null);
+                EasyMock.expect(request.getAttribute("org.eclipse.jetty.ajax.Continuation")).andReturn(null);
                 
                 HttpFields httpFields = new HttpFields();
                 httpFields.add("content-type", "text/xml");

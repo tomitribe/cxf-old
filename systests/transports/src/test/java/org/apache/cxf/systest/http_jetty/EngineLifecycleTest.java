@@ -48,8 +48,8 @@ import org.junit.Before;
 
 
 import org.junit.Test;
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.support.GenericApplicationContext;
@@ -175,7 +175,7 @@ public class EngineLifecycleTest extends Assert {
         ServerImpl si = (ServerImpl) sr.getServers().get(0);
         JettyHTTPDestination jhd = (JettyHTTPDestination) si.getDestination();
         JettyHTTPServerEngine e = (JettyHTTPServerEngine) jhd.getEngine();
-        org.mortbay.jetty.Server jettyServer = e.getServer();
+        org.eclipse.jetty.server.Server jettyServer = e.getServer();
 
         Handler[] contexts = jettyServer.getChildHandlersByClass(WebAppContext.class);
         WebAppContext servletContext = null;
@@ -186,7 +186,7 @@ public class EngineLifecycleTest extends Assert {
                 break;
             }
         }
-        servletContext.addServlet("org.mortbay.jetty.servlet.DefaultServlet", "/bloop");
+        servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/bloop");
         getTestHtml();
         invokeService();        
         shutdownService();
