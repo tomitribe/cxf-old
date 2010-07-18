@@ -346,7 +346,7 @@ public class JettyHTTPDestination extends AbstractHTTPDestination {
             return null;
         }
         
-        Continuation cont = ContinuationSupport.getContinuation(req, null);
+        Continuation cont = ContinuationSupport.getContinuation(req);
         synchronized (cont) {
             Object o = cont.getObject();
             if (o instanceof ContinuationInfo) {

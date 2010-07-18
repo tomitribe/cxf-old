@@ -52,6 +52,7 @@ import org.eclipse.jetty.server.ssl.SslSocketConnector;
 import org.eclipse.jetty.server.session.HashSessionIdManager;
 import org.eclipse.jetty.server.session.HashSessionManager;
 import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.util.thread.OldQueuedThreadPool;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 
@@ -292,7 +293,6 @@ public class JettyHTTPServerEngine
      * @param url the URL associated with the servant
      * @param handler notified on incoming HTTP requests
      */
-    @SuppressWarnings("deprecation")
     public synchronized void addServant(URL url, JettyHTTPHandler handler) {
         if (server == null) {
             DefaultHandler defaultHandler = null;
@@ -314,11 +314,13 @@ public class JettyHTTPServerEngine
                     LOG.finer("connector.port: " + connector.getPort());
                 }
             } 
+            HandlerList handlerList = new HandlerList();
+            
             server.addConnector(connector);            
             if (handlers != null && handlers.size() > 0) {
-                HandlerList handlerList = new HandlerList();
+                
                 for (Handler h : handlers) {
-                    // filting the jetty default handler 
+                    // filtering the jetty default handler 
                     // which should not be added at this point
                     if (h instanceof DefaultHandler) {
                         defaultHandler = (DefaultHandler) h;
@@ -326,22 +328,23 @@ public class JettyHTTPServerEngine
                         handlerList.addHandler(h);
                     }
                 }
-                server.addHandler(handlerList);
             }
             contexts = new ContextHandlerCollection();
-            server.addHandler(contexts);
+            handlerList.addHandler(contexts);
             if (defaultHandler != null) {
-                server.addHandler(defaultHandler);
+                handlerList.addHandler(defaultHandler);
             }
+            // having filtered the whole list, we can set.
+            server.setHandler(handlerList);
+
             try {                
                 setReuseAddress(connector);
                 server.start();
                
                 AbstractConnector aconn = (AbstractConnector) connector;
                 if (isSetThreadingParameters()) {
-                    if (aconn.getThreadPool() instanceof org.eclipse.thread.BoundedThreadPool) {
-                        org.eclipse.thread.BoundedThreadPool pool 
-                            = (org.eclipse.thread.BoundedThreadPool)aconn.getThreadPool();
+                    if (aconn.getThreadPool() instanceof OldQueuedThreadPool) {
+                        OldQueuedThreadPool pool = (OldQueuedThreadPool)aconn.getThreadPool();
                         if (getThreadingParameters().isSetMinThreads()) {
                             pool.setMinThreads(getThreadingParameters().getMinThreads());
                         }
@@ -375,16 +378,17 @@ public class JettyHTTPServerEngine
         String contextName = HttpUriMapper.getContextName(url.getPath());            
         ContextHandler context = new ContextHandler();
         context.setContextPath(contextName);
-        
+        HandlerList handlerList = new HandlerList();        
         // bind the jetty http handler with the context handler        
-        context.setHandler(handler);
+        handlerList.addHandler(handler);
         if (isSessionSupport) {            
             HashSessionManager sessionManager = new HashSessionManager();
             SessionHandler sessionHandler = new SessionHandler(sessionManager);
             HashSessionIdManager idManager = new HashSessionIdManager();
             sessionManager.setIdManager(idManager);            
-            context.addHandler(sessionHandler);           
+            handlerList.addHandler(sessionHandler);           
         }
+        context.setHandler(handlerList);
         contexts.addHandler(context);
         
         ServletContext sc = context.getServletContext();

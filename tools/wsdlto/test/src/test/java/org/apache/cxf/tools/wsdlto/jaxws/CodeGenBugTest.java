@@ -464,7 +464,8 @@ public class CodeGenBugTest extends AbstractCodeGenTest {
 
         ResourceHandler reshandler = new ResourceHandler();
         reshandler.setResourceBase(getLocation("/wsdl2java_wsdl/"));
-        server.addHandler(reshandler);
+        // this is the only handler we're supposed to need, so we don't need to 'add' it.
+        server.setHandler(reshandler);
         server.start();
         env.put(ToolConstants.CFG_WSDLURL, "http://localhost:8585/hello_world.wsdl");
         env.put(ToolConstants.CFG_BINDING, "http://localhost:8585/remote-hello_world_binding.xsd");
