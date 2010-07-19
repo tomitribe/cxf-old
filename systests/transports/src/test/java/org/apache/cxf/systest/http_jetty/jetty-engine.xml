@@ -37,7 +37,7 @@
  <httpj:engine-factory bus="cxf">
   <httpj:engine port='${testutil.ports.EngineLifecycleTest.1}'>
    <httpj:connector>
-    <bean class="org.eclipse.jetty.bio.SocketConnector">
+    <bean class="org.eclipse.jetty.server.bio.SocketConnector">
      <property name="port" value="${testutil.ports.EngineLifecycleTest.1}"/>
     </bean>
    </httpj:connector>

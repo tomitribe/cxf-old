@@ -42,14 +42,15 @@ import org.apache.cxf.io.CachedOutputStream;
 import org.apache.cxf.testutil.common.TestUtil;
 import org.apache.cxf.transport.http_jetty.JettyHTTPDestination;
 import org.apache.cxf.transport.http_jetty.JettyHTTPServerEngine;
+
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.webapp.WebAppContext;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-
-
 import org.junit.Test;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.webapp.WebAppContext;
+
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.support.GenericApplicationContext;

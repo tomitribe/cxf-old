@@ -68,7 +68,7 @@
 	   <hj:engine port="9001">
 	       <hj:threadingParameters minThreads="99" maxThreads="777"/>	      
 	     <hj:connector>
-           <beans:bean class="org.eclipse.jetty.bio.SocketConnector">
+           <beans:bean class="org.eclipse.jetty.server.bio.SocketConnector">
               <beans:property name = "port" value="9001" />
            </beans:bean>
          </hj:connector>

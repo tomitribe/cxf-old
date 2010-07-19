@@ -84,7 +84,7 @@
 	       <hj:threadingParameters minThreads="${engine.port.nine.one.minThreads}"
 	        maxThreads="${engine.port.nine.one.maxThreads}"/>	      
 	     <hj:connector>
-           <beans:bean class="org.eclipse.jetty.bio.SocketConnector">
+           <beans:bean class="org.eclipse.jetty.server.bio.SocketConnector">
               <beans:property name = "port" value="${engine.port.nine.one}" />
            </beans:bean>
          </hj:connector>

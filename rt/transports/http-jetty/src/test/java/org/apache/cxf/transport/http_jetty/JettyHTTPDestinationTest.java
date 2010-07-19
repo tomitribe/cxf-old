@@ -43,7 +43,6 @@ import org.apache.cxf.bus.CXFBusImpl;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
-import org.apache.cxf.continuations.ContinuationInfo;
 import org.apache.cxf.continuations.SuspendedInvocationException;
 import org.apache.cxf.endpoint.EndpointResolverRegistry;
 import org.apache.cxf.helpers.CastUtils;
@@ -69,13 +68,13 @@ import org.apache.cxf.ws.addressing.JAXWSAConstants;
 import org.apache.cxf.ws.policy.PolicyEngine;
 import org.apache.cxf.wsdl.EndpointReferenceUtils;
 import org.easymock.classextension.EasyMock;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
+import org.eclipse.jetty.continuation.Continuation;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.continuation.Continuation;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class JettyHTTPDestinationTest extends Assert {
     protected static final String AUTH_HEADER = "Authorization";
@@ -202,47 +201,6 @@ public class JettyHTTPDestinationTest extends Assert {
         }
     }
     
-    @Test
-    public void testRetrieveFromContinuation() throws Exception {
-        
-        Continuation continuation = EasyMock.createMock(Continuation.class);
-        
-        Message m = new MessageImpl();
-        ContinuationInfo ci = new ContinuationInfo(m);
-        Object userObject = new Object();
-        ci.setUserObject(userObject);
-        continuation.getObject();
-        EasyMock.expectLastCall().andReturn(ci);
-        continuation.setObject(ci.getUserObject());
-        EasyMock.expectLastCall();
-        EasyMock.replay(continuation);
-        
-        HttpServletRequest httpRequest = EasyMock.createMock(HttpServletRequest.class);
-        httpRequest.getAttribute("org.eclipse.jetty.ajax.Continuation");
-        EasyMock.expectLastCall().andReturn(continuation);
-        EasyMock.replay(httpRequest);
-        
-        ServiceInfo serviceInfo = new ServiceInfo();
-        serviceInfo.setName(new QName("bla", "Service"));
-        EndpointInfo ei = new EndpointInfo(serviceInfo, "");
-        ei.setName(new QName("bla", "Port"));
-        
-        transportFactory = new JettyHTTPTransportFactory();
-        transportFactory.setBus(new CXFBusImpl());
-        
-        TestJettyDestination testDestination = 
-            new TestJettyDestination(transportFactory.getBus(), 
-                                     transportFactory, ei);
-        testDestination.finalizeConfig();
-        Message mi = testDestination.retrieveFromContinuation(httpRequest);
-        assertSame("Message is lost", m, mi);
-        EasyMock.verify(continuation);
-        EasyMock.reset(httpRequest);
-        httpRequest.getAttribute("org.eclipse.jetty.ajax.Continuation");
-        EasyMock.expectLastCall().andReturn(null);
-        mi = testDestination.retrieveFromContinuation(httpRequest);
-        assertNotSame("New message expected", m, mi);
-    }
     
     @Test
     public void testContinuationsIgnored() throws Exception {

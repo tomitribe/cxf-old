@@ -26,7 +26,6 @@ import org.apache.cxf.testutil.common.AbstractBusTestServerBase;
 import org.apache.cxf.transport.servlet.CXFNonSpringServlet;
 import org.apache.hello_world_soap_http.GreeterImpl;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.ContextHandler.Context;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -46,7 +45,8 @@ public class NoSpringServletServer extends AbstractBusTestServerBase {
             ContextHandlerCollection contexts = new ContextHandlerCollection();
             httpServer.setHandler(contexts);
 
-            ServletContextHandler root = new ServletContextHandler(contexts, "/", ServletContextHandler.SESSIONS);
+            ServletContextHandler root = new ServletContextHandler(contexts, "/",
+                                                                   ServletContextHandler.SESSIONS);
 
             CXFNonSpringServlet cxf = new CXFNonSpringServlet();
             ServletHolder servlet = new ServletHolder(cxf);
