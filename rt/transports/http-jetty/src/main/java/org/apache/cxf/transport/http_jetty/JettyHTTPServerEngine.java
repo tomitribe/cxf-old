@@ -41,16 +41,20 @@ import org.apache.cxf.transport.https_jetty.JettySslConnectorFactory;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HandlerContainer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.HandlerWrapper;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.session.HashSessionIdManager;
 import org.eclipse.jetty.server.session.HashSessionManager;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.server.ssl.SslSocketConnector;
+import org.eclipse.jetty.util.LazyList;
 import org.eclipse.jetty.util.component.Container;
 import org.eclipse.jetty.util.thread.OldQueuedThreadPool;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -314,11 +318,20 @@ public class JettyHTTPServerEngine
                     LOG.finer("connector.port: " + connector.getPort());
                 }
             } 
-            HandlerList handlerList = new HandlerList();
-            
-            server.addConnector(connector);            
+
+            server.addConnector(connector);
+            /*
+             * Assume that a new server object has a ContextHandlerCollection as its handler.
+             * If this can be wrong, we could build a more complex structure to cope.
+             */
+            ContextHandlerCollection existingHandlerList = (ContextHandlerCollection)server.getHandler();
+            if (existingHandlerList == null) {
+                existingHandlerList = new ContextHandlerCollection();
+                server.setHandler(existingHandlerList);
+            }
+
             if (handlers != null && handlers.size() > 0) {
-                
+                HandlerList handlerList = new HandlerList();                
                 for (Handler h : handlers) {
                     // filtering the jetty default handler 
                     // which should not be added at this point
@@ -328,14 +341,13 @@ public class JettyHTTPServerEngine
                         handlerList.addHandler(h);
                     }
                 }
+                existingHandlerList.addHandler(handlerList);
             }
             contexts = new ContextHandlerCollection();
-            handlerList.addHandler(contexts);
+            existingHandlerList.addHandler(contexts);
             if (defaultHandler != null) {
-                handlerList.addHandler(defaultHandler);
+                existingHandlerList.addHandler(defaultHandler);
             }
-            // having filtered the whole list, we can set.
-            server.setHandler(handlerList);
 
             try {                
                 setReuseAddress(connector);
@@ -378,17 +390,21 @@ public class JettyHTTPServerEngine
         String contextName = HttpUriMapper.getContextName(url.getPath());            
         ContextHandler context = new ContextHandler();
         context.setContextPath(contextName);
-        HandlerList handlerList = new HandlerList();        
-        // bind the jetty http handler with the context handler        
-        handlerList.addHandler(handler);
-        if (isSessionSupport) {            
+        // bind the jetty http handler with the context handler
+        if (isSessionSupport) {         
+            // If we have sessions, we need two handlers.
             HashSessionManager sessionManager = new HashSessionManager();
             SessionHandler sessionHandler = new SessionHandler(sessionManager);
             HashSessionIdManager idManager = new HashSessionIdManager();
-            sessionManager.setIdManager(idManager);            
-            handlerList.addHandler(sessionHandler);           
+            sessionManager.setIdManager(idManager);
+            HandlerCollection hc = new HandlerCollection();
+            hc.addHandler(handler);
+            hc.addHandler(sessionHandler);
+            context.setHandler(hc);
+        } else {
+            // otherwise, just the one.
+            context.setHandler(handler);
         }
-        context.setHandler(handlerList);
         contexts.addHandler(context);
         
         ServletContext sc = context.getServletContext();
