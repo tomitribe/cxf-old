@@ -5,8 +5,7 @@
  * regarding copyright ownership. The ASF licenses this file
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
- *
+ * with the License. You may obtain a copy of the License at *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
@@ -321,32 +320,58 @@ public class JettyHTTPServerEngine
 
             server.addConnector(connector);
             /*
-             * Assume that a new server object has a ContextHandlerCollection as its handler.
-             * If this can be wrong, we could build a more complex structure to cope.
+             * The server may have no handler, it might have a collection handler,
+             * it might have a one-shot. We need to add one or more of ours.
+             *
              */
-            ContextHandlerCollection existingHandlerList = (ContextHandlerCollection)server.getHandler();
-            if (existingHandlerList == null) {
-                existingHandlerList = new ContextHandlerCollection();
-                server.setHandler(existingHandlerList);
+            int numberOfHandlers = 1;
+            if (handlers != null) {
+                numberOfHandlers += handlers.size();
+            }
+            Handler existingHandler = server.getHandler();
+
+            HandlerCollection handlerCollection = null;
+            boolean existingHandlerCollection = existingHandler instanceof HandlerCollection;
+            if (existingHandlerCollection) {
+                handlerCollection = (HandlerCollection) existingHandler;
             }
 
+            if (!existingHandlerCollection &&
+                (existingHandler != null || numberOfHandlers > 1)) {
+                handlerCollection = new HandlerCollection();
+                handlerCollection.addHandler(existingHandler);
+                server.setHandler(handlerCollection);
+            }
+            
+            /*
+             * At this point, the server's handler is a collection. It was either
+             * one to start, or it is now one containing only the single handler
+             * that was there to begin with.
+             */
+
             if (handlers != null && handlers.size() > 0) {
-                HandlerList handlerList = new HandlerList();                
                 for (Handler h : handlers) {
-                    // filtering the jetty default handler 
-                    // which should not be added at this point
+                    // Filtering out the jetty default handler 
+                    // which should not be added at this point.
                     if (h instanceof DefaultHandler) {
                         defaultHandler = (DefaultHandler) h;
                     } else {
-                        handlerList.addHandler(h);
+                        handlerCollection.addHandler(h);
                     }
                 }
-                existingHandlerList.addHandler(handlerList);
             }
             contexts = new ContextHandlerCollection();
-            existingHandlerList.addHandler(contexts);
-            if (defaultHandler != null) {
-                existingHandlerList.addHandler(defaultHandler);
+            /*
+             * handlerCollection may be null here if is only one handler to deal with.
+             * Which in turn implies that there can't be a 'defaultHander' to deal with.
+             */
+            if (handlerCollection != null) {
+                handlerCollection.addHandler(contexts);
+                if (defaultHandler != null) {
+                    handlerCollection.addHandler(defaultHandler);
+                }
+            } else {
+                server.setHandler(contexts);
             }
 
             try {                
