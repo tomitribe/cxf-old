@@ -290,7 +290,7 @@ public class JettyHTTPServerEngineFactory implements BusLifeCycleListener {
             MBeanServer mbs =  bus.getExtension(InstrumentationManager.class).getMBeanServer();
             if (mbs != null) {
                 try {
-                    Class<?> cls = ClassLoaderUtils.loadClass("org.eclipse.management.MBeanContainer", 
+                    Class<?> cls = ClassLoaderUtils.loadClass("org.eclipse.jetty.jmx.MBeanContainer", 
                                                           getClass());
                     
                     mBeanContainer = (Container.Listener) cls.

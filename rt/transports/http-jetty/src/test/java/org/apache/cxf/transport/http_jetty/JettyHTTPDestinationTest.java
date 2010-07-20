@@ -58,6 +58,7 @@ import org.apache.cxf.transport.ConduitInitiator;
 import org.apache.cxf.transport.ConduitInitiatorManager;
 import org.apache.cxf.transport.Destination;
 import org.apache.cxf.transport.MessageObserver;
+import org.apache.cxf.transport.http.AbstractHTTPDestination;
 import org.apache.cxf.transports.http.QueryHandler;
 import org.apache.cxf.transports.http.QueryHandlerRegistry;
 import org.apache.cxf.transports.http.StemMatchingQueryHandler;
@@ -68,7 +69,6 @@ import org.apache.cxf.ws.addressing.JAXWSAConstants;
 import org.apache.cxf.ws.policy.PolicyEngine;
 import org.apache.cxf.wsdl.EndpointReferenceUtils;
 import org.easymock.classextension.EasyMock;
-import org.eclipse.jetty.continuation.Continuation;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -205,11 +205,7 @@ public class JettyHTTPDestinationTest extends Assert {
     @Test
     public void testContinuationsIgnored() throws Exception {
         
-        Continuation continuation = EasyMock.createMock(Continuation.class);
         HttpServletRequest httpRequest = EasyMock.createMock(HttpServletRequest.class);
-        httpRequest.getAttribute("org.eclipse.jetty.ajax.Continuation");
-        EasyMock.expectLastCall().andReturn(continuation);
-        EasyMock.replay(httpRequest);
         
         ServiceInfo serviceInfo = new ServiceInfo();
         serviceInfo.setName(new QName("bla", "Service"));
@@ -697,6 +693,9 @@ public class JettyHTTPDestinationTest extends Assert {
             if ("GET".equals(method) && "?wsdl".equals(query)) {
                 verifyGetWSDLQuery();                
             } else { // test for the post
+                EasyMock.expect(request.getAttribute(AbstractHTTPDestination.CXF_CONTINUATION_MESSAGE))
+                    .andReturn(null);
+                
                 EasyMock.expect(request.getMethod()).andReturn(method);            
                 EasyMock.expect(request.getInputStream()).andReturn(is);
                 EasyMock.expect(request.getContextPath()).andReturn("/bar");

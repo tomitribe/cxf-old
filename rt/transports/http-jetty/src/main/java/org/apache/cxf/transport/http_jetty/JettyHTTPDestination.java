@@ -304,7 +304,10 @@ public class JettyHTTPDestination extends AbstractHTTPDestination {
             resp.flushBuffer();
             baseRequest.setHandled(true);
         } catch (SuspendedInvocationException ex) {
-            //nothing - async case
+            if (ex.getRuntimeException() != null) {
+                throw ex.getRuntimeException();
+            }
+            //else nothing to do
         } catch (Fault ex) {
             Throwable cause = ex.getCause();
             if (cause instanceof RuntimeException) {

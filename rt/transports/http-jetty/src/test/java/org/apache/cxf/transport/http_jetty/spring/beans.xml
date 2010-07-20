@@ -73,7 +73,7 @@
            </beans:bean>
          </hj:connector>
          <hj:handlers>
-           <beans:bean class="org.eclipse.jetty.handler.DefaultHandler"/>         
+           <beans:bean class="org.eclipse.jetty.server.handler.DefaultHandler"/>         
          </hj:handlers>
          <hj:sessionSupport>true</hj:sessionSupport>
 	  </hj:engine> 
