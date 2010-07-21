@@ -5,7 +5,8 @@
  * regarding copyright ownership. The ASF licenses this file
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at *
+ * with the License. You may obtain a copy of the License at
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
@@ -20,7 +21,6 @@ package org.apache.cxf.transport.http_jetty;
 
 import java.io.IOException;
 import java.net.URL;
-
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.logging.Level;
@@ -40,20 +40,16 @@ import org.apache.cxf.transport.https_jetty.JettySslConnectorFactory;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.HandlerContainer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.HandlerWrapper;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.session.HashSessionIdManager;
 import org.eclipse.jetty.server.session.HashSessionManager;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.server.ssl.SslSocketConnector;
-import org.eclipse.jetty.util.LazyList;
 import org.eclipse.jetty.util.component.Container;
 import org.eclipse.jetty.util.thread.OldQueuedThreadPool;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -336,7 +332,8 @@ public class JettyHTTPServerEngine
                 handlerCollection = (HandlerCollection) existingHandler;
             }
 
-            if (!existingHandlerCollection &&
+            if (!existingHandlerCollection 
+                &&
                 (existingHandler != null || numberOfHandlers > 1)) {
                 handlerCollection = new HandlerCollection();
                 handlerCollection.addHandler(existingHandler);
