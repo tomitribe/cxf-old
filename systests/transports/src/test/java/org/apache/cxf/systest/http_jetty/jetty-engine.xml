@@ -48,19 +48,19 @@
       <constructor-arg value="."/>
       <constructor-arg value="/jsunit"/>
     </bean>
-    <bean class="org.eclipse.jetty.handler.ContextHandler">
+    <bean class="org.eclipse.jetty.server.handler.ContextHandler">
      <property name="contextPath" value="/" />
      <property name="handler">
-      <bean class="org.eclipse.jetty.handler.ResourceHandler">
+      <bean class="org.eclipse.jetty.server.handler.ResourceHandler">
        <property name="baseResource">
-        <bean class="org.eclipse.resource.FileResource">
+        <bean class="org.eclipse.jetty.util.resource.FileResource">
          <constructor-arg value="${staticResourceURL}" />
         </bean>
         </property>
       </bean>
      </property>
     </bean>
-    <bean class="org.eclipse.jetty.handler.DefaultHandler"/>
+    <bean class="org.eclipse.jetty.server.handler.DefaultHandler"/>
    </httpj:handlers>
   </httpj:engine>
  </httpj:engine-factory>

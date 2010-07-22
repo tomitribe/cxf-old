@@ -53,6 +53,7 @@ import org.eclipse.jetty.server.ssl.SslSocketConnector;
 import org.eclipse.jetty.util.component.Container;
 import org.eclipse.jetty.util.thread.OldQueuedThreadPool;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.util.thread.ThreadPool;
 
 
 /**
@@ -375,28 +376,8 @@ public class JettyHTTPServerEngine
 
             try {                
                 setReuseAddress(connector);
+                setupThreadPool();
                 server.start();
-               
-                AbstractConnector aconn = (AbstractConnector) connector;
-                if (isSetThreadingParameters()) {
-                    if (aconn.getThreadPool() instanceof OldQueuedThreadPool) {
-                        OldQueuedThreadPool pool = (OldQueuedThreadPool)aconn.getThreadPool();
-                        if (getThreadingParameters().isSetMinThreads()) {
-                            pool.setMinThreads(getThreadingParameters().getMinThreads());
-                        }
-                        if (getThreadingParameters().isSetMaxThreads()) {
-                            pool.setMaxThreads(getThreadingParameters().getMaxThreads());
-                        }
-                    } else if (aconn.getThreadPool() instanceof QueuedThreadPool) {
-                        QueuedThreadPool pool = (QueuedThreadPool)aconn.getThreadPool();
-                        if (getThreadingParameters().isSetMinThreads()) {
-                            pool.setMinThreads(getThreadingParameters().getMinThreads());
-                        }
-                        if (getThreadingParameters().isSetMaxThreads()) {
-                            pool.setMaxThreads(getThreadingParameters().getMaxThreads());
-                        }
-                    }
-                }
             } catch (Exception e) {
                 LOG.log(Level.SEVERE, "START_UP_SERVER_FAILED_MSG", new Object[] {e.getMessage(), port});
                 //problem starting server
@@ -447,6 +428,34 @@ public class JettyHTTPServerEngine
         
             
         ++servantCount;
+    }
+    
+    protected void setupThreadPool() {
+        AbstractConnector aconn = (AbstractConnector) connector;
+        if (isSetThreadingParameters()) {
+            ThreadPool pool = aconn.getThreadPool();
+            if (pool == null) {
+                pool = new QueuedThreadPool();
+                aconn.setThreadPool(pool);
+            }
+            if (pool instanceof OldQueuedThreadPool) {
+                OldQueuedThreadPool pl = (OldQueuedThreadPool)pool;
+                if (getThreadingParameters().isSetMinThreads()) {
+                    pl.setMinThreads(getThreadingParameters().getMinThreads());
+                }
+                if (getThreadingParameters().isSetMaxThreads()) {
+                    pl.setMaxThreads(getThreadingParameters().getMaxThreads());
+                }
+            } else if (pool instanceof QueuedThreadPool) {
+                QueuedThreadPool pl = (QueuedThreadPool)pool;
+                if (getThreadingParameters().isSetMinThreads()) {
+                    pl.setMinThreads(getThreadingParameters().getMinThreads());
+                }
+                if (getThreadingParameters().isSetMaxThreads()) {
+                    pl.setMaxThreads(getThreadingParameters().getMaxThreads());
+                }
+            }
+        }
     }
     
     private void setReuseAddress(Connector conn) throws IOException {
