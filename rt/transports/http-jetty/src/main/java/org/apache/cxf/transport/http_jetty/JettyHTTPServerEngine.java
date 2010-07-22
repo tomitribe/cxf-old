@@ -336,7 +336,9 @@ public class JettyHTTPServerEngine
                 &&
                 (existingHandler != null || numberOfHandlers > 1)) {
                 handlerCollection = new HandlerCollection();
-                handlerCollection.addHandler(existingHandler);
+                if (existingHandler != null) {
+                    handlerCollection.addHandler(existingHandler);
+                }
                 server.setHandler(handlerCollection);
             }
             
