@@ -215,6 +215,14 @@ public class JettyHTTPDestination extends AbstractHTTPDestination {
         Request baseRequest = (req instanceof Request) 
             ? (Request)req : HttpConnection.getCurrentConnection().getRequest();
             
+        if (!"HEAD".equals(req.getMethod())) {
+            //bug in Jetty with persistent connections that if a HEAD is
+            //sent, a _head flag is never reset
+            HttpConnection c = baseRequest.getConnection();
+            if (c != null) {
+                c.getGenerator().setHead(false);
+            }
+        }
         if (getServer().isSetRedirectURL()) {
             resp.sendRedirect(getServer().getRedirectURL());
             resp.flushBuffer();

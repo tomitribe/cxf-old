@@ -674,8 +674,9 @@ public class JettyHTTPDestinationTest extends Assert {
         request = EasyMock.createMock(Request.class);
         response = EasyMock.createMock(Response.class);
         request.getMethod();
-        EasyMock.expectLastCall().andReturn(method);
-        
+        EasyMock.expectLastCall().andReturn(method).atLeastOnce();
+        request.getConnection();
+        EasyMock.expectLastCall().andReturn(null).anyTimes();
         
         if (setRedirectURL) {
             policy.setRedirectURL(NOWHERE + "foo/bar");
@@ -696,7 +697,7 @@ public class JettyHTTPDestinationTest extends Assert {
                 EasyMock.expect(request.getAttribute(AbstractHTTPDestination.CXF_CONTINUATION_MESSAGE))
                     .andReturn(null);
                 
-                EasyMock.expect(request.getMethod()).andReturn(method);            
+                //EasyMock.expect(request.getMethod()).andReturn(method);            
                 EasyMock.expect(request.getInputStream()).andReturn(is);
                 EasyMock.expect(request.getContextPath()).andReturn("/bar");
                 EasyMock.expect(request.getPathInfo()).andReturn("/foo");

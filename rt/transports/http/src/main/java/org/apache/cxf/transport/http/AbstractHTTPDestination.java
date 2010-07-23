@@ -653,6 +653,7 @@ public abstract class AbstractHTTPDestination
                 }
             }
             if (wrappedStream != null) {
+                wrappedStream.flush();
                 wrappedStream.close();
                 response.flushBuffer();
             }
