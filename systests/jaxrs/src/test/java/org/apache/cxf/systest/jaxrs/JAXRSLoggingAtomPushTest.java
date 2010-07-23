@@ -164,7 +164,6 @@ public class JAXRSLoggingAtomPushTest extends Assert {
     
     @Test
     public void testOneElementBatch() throws Exception {
-        System.out.println(Resource.feeds.size());
         configureLogging("resources/logging_atompush.properties");
         logSixEvents(LOG);
         // need to wait: multithreaded and client-server journey
