@@ -503,6 +503,9 @@ public abstract class AbstractHTTPDestination
     }
     
     protected OutputStream flushHeaders(Message outMessage) throws IOException {
+        return flushHeaders(outMessage, true);
+    }
+    protected OutputStream flushHeaders(Message outMessage, boolean getStream) throws IOException {
         if (isResponseRedirected(outMessage)) {
             return null;
         }
@@ -539,6 +542,8 @@ public abstract class AbstractHTTPDestination
             if (oneWay && !MessageUtils.isPartialResponse(outMessage)) {
                 response.setContentLength(0);
                 response.flushBuffer();
+                response.getOutputStream().close();
+            } else if (!getStream) {
                 response.getOutputStream().close();
             } else {
                 responseStream = response.getOutputStream();                
@@ -647,13 +652,12 @@ public abstract class AbstractHTTPDestination
          */
         public void close() throws IOException {
             if (wrappedStream == null) {
-                OutputStream responseStream = flushHeaders(outMessage);
+                OutputStream responseStream = flushHeaders(outMessage, false);
                 if (null != responseStream) {
                     wrappedStream = responseStream;
                 }
             }
             if (wrappedStream != null) {
-                wrappedStream.flush();
                 wrappedStream.close();
                 response.flushBuffer();
             }
