@@ -89,7 +89,6 @@ public class AsyncHTTPConduit extends HTTPConduit {
         Map<String, List<String>> headers = getSetProtocolHeaders(message);
         
         URL currentURL = setupURL(message);
-        MessageUtils.getContextualBoolean(message, "force.http.url.connection", false);
         if (MessageUtils.getContextualBoolean(message, "force.http.url.connection", false)
             || "https".equalsIgnoreCase(currentURL.getProtocol())) {
             //delegate to the parent for any https things for now
@@ -836,6 +835,14 @@ public class AsyncHTTPConduit extends HTTPConduit {
                     return i;
                 }
                 public void close() throws IOException {
+                    if (!decoder.isCompleted()) {
+                        ByteBuffer buf = ByteBuffer.allocate(4096);
+                        int i = decoder.read(buf);
+                        while (i != -1) {
+                            buf.clear();
+                            i = decoder.read(buf);
+                        }
+                    }
                 }
             };
             this.handleResponseInternal();
