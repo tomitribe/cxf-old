@@ -354,8 +354,6 @@ public class HTTPConduitURLEasyMockTest extends Assert {
         wrappedOS.close();
 
         assertNotNull("expected in message", inMessage);
-        Map<?, ?> headerMap = (Map<?, ?>) inMessage.get(Message.PROTOCOL_HEADERS);
-        assertEquals("unexpected response headers", headerMap.size(), 0);
         Integer expectedResponseCode = style == ResponseStyle.BACK_CHANNEL
                                        ? HttpURLConnection.HTTP_OK
                                        : HttpURLConnection.HTTP_ACCEPTED;
@@ -429,8 +427,9 @@ public class HTTPConduitURLEasyMockTest extends Assert {
     private void verifyHandleResponse(ResponseStyle style, 
                                       ResponseDelimiter delimiter,
                                       boolean emptyResponse) throws IOException {
+        Map<String, List<String>> headers = new HashMap<String, List<String>>();
         connection.getHeaderFields();
-        EasyMock.expectLastCall().andReturn(Collections.EMPTY_MAP).anyTimes();
+        EasyMock.expectLastCall().andReturn(headers).anyTimes();
         int responseCode = style == ResponseStyle.BACK_CHANNEL
                            ? HttpURLConnection.HTTP_OK
                            : HttpURLConnection.HTTP_ACCEPTED;
@@ -447,11 +446,13 @@ public class HTTPConduitURLEasyMockTest extends Assert {
                 || delimiter == ResponseDelimiter.EOF) {
                 EasyMock.expectLastCall().andReturn(-1).anyTimes();
                 if (delimiter == ResponseDelimiter.CHUNKED) {
-                    connection.getHeaderField("Transfer-Encoding");
-                    EasyMock.expectLastCall().andReturn("chunked");
+                    //connection.getHeaderField("Transfer-Encoding");
+                    //EasyMock.expectLastCall().andReturn("chunked");
+                    headers.put("Transfer-Encoding", Collections.singletonList("chunked"));
                 } else if (delimiter == ResponseDelimiter.EOF) {
-                    connection.getHeaderField("Connection");
-                    EasyMock.expectLastCall().andReturn("close");
+                    //connection.getHeaderField("Connection");
+                    //EasyMock.expectLastCall().andReturn("close");
+                    headers.put("Connection", Collections.singletonList("close"));
                 }
                 is.read();
                 EasyMock.expectLastCall().andReturn(emptyResponse ? -1 : (int)'<');

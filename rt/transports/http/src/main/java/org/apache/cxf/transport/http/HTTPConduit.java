@@ -983,7 +983,7 @@ public class HTTPConduit
      * @return true if the connection has a chunked response pending
      */
     protected static boolean hasChunkedResponse(Map<String, List<String>> headers) {
-        List<String> s = headers.get(HttpHeaderHelper.TRANSFER_ENCODING);
+        List<String> s = headers.get(HttpHeaderHelper.getHeaderKey(HttpHeaderHelper.TRANSFER_ENCODING));
         if (s != null) {
             for (String s2 : s) {
                 if (HttpHeaderHelper.CHUNKED.equalsIgnoreCase(s2)) {
@@ -1001,7 +1001,7 @@ public class HTTPConduit
     protected static boolean hasEofTerminatedResponse(
         Map<String, List<String>> headers
     ) {
-        List<String> s = headers.get(HttpHeaderHelper.CONNECTION);
+        List<String> s = headers.get(HttpHeaderHelper.getHeaderKey(HttpHeaderHelper.CONNECTION));
         if (s != null) {
             for (String s2 : s) {
                 if (HttpHeaderHelper.CLOSE.equalsIgnoreCase(s2)) {
