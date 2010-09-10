@@ -28,6 +28,7 @@ import org.apache.cxf.common.injection.NoJSR250Annotations;
 import org.apache.cxf.service.model.EndpointInfo;
 import org.apache.cxf.transport.Conduit;
 import org.apache.cxf.transport.ConduitInitiator;
+import org.apache.cxf.transport.http.async.AsyncHTTPConduit;
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
 
 @NoJSR250Annotations(unlessNull = "bus")
@@ -60,9 +61,15 @@ public class ClientOnlyHTTPTransportFactory extends AbstractHTTPTransportFactory
             EndpointInfo endpointInfo,
             EndpointReferenceType target
     ) throws IOException {
+        /*
         HTTPConduit conduit = target == null
             ? new HTTPConduit(bus, endpointInfo)
             : new HTTPConduit(bus, endpointInfo, target);
+            */
+        HTTPConduit conduit = target == null
+            ? new AsyncHTTPConduit(bus, endpointInfo)
+            : new AsyncHTTPConduit(bus, endpointInfo, target);
+        
         // Spring configure the conduit.  
         String address = conduit.getAddress();
         if (address != null && address.indexOf('?') != -1) {

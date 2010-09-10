@@ -640,6 +640,8 @@ public class WebClient extends AbstractClient {
             rb.entity(entity);
             
             return rb.build();
+        } catch (WebApplicationException ex) {
+            throw ex;
         } catch (Throwable ex) {
             throw new WebApplicationException(ex);
         }

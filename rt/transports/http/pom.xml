@@ -68,6 +68,17 @@
             <artifactId>${servlet-api.artifact}</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore-nio</artifactId>
+            <version>4.1-beta2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.1-alpha2</version>
+        </dependency>
     </dependencies>
 
     <build>

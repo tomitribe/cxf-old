@@ -312,7 +312,7 @@ public class AbstractClient implements Client {
     protected ResponseBuilder setResponseBuilder(HttpURLConnection conn, Exchange exchange) throws Throwable {
         Message inMessage = exchange.getInMessage();
         if (conn == null) {
-            throw new WebApplicationException(); 
+            throw new WebApplicationException(Response.noContent().build()); 
         }
         Integer responseCode = (Integer)exchange.get(Message.RESPONSE_CODE);
         if (responseCode == null) {
@@ -578,6 +578,8 @@ public class AbstractClient implements Client {
                                     MultivaluedMap<String, String> headers,
                                     URI currentURI) {
         Message m = cfg.getConduitSelector().getEndpoint().getBinding().createMessage();
+        m.put("force.http.url.connection", Boolean.TRUE);
+        
         m.put(Message.REQUESTOR_ROLE, Boolean.TRUE);
         m.put(Message.INBOUND_MESSAGE, Boolean.FALSE);
         

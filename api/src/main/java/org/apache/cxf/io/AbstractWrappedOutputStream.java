@@ -35,6 +35,10 @@ public abstract class AbstractWrappedOutputStream extends OutputStream {
     protected AbstractWrappedOutputStream() {
         super();
     }
+    protected AbstractWrappedOutputStream(OutputStream wrapped) {
+        super();
+        wrappedStream = wrapped;
+    }
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {

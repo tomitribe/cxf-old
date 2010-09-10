@@ -379,8 +379,11 @@ public class ClientServerTest extends AbstractBusClientServerTestBase {
         long before = System.currentTimeMillis();
 
         long delay = 3000;
+        //System.out.println(System.currentTimeMillis());
         Response<GreetMeLaterResponse> r1 = greeter.greetMeLaterAsync(delay);
+        //System.out.println(System.currentTimeMillis());
         Response<GreetMeLaterResponse> r2 = greeter.greetMeLaterAsync(delay);
+        //System.out.println(System.currentTimeMillis());
 
         long after = System.currentTimeMillis();
 
@@ -403,6 +406,7 @@ public class ClientServerTest extends AbstractBusClientServerTestBase {
             }
             waited += 500;
         }
+        //Thread.sleep(100000000);
         assertTrue("Response is  not available.", r1.isDone());
         assertTrue("Response is  not available.", r2.isDone());
     }
@@ -680,7 +684,10 @@ public class ClientServerTest extends AbstractBusClientServerTestBase {
                 BindingProvider bp = (BindingProvider)greeter;
                 Map<String, Object> responseContext = bp.getResponseContext();
                 String contentType = (String) responseContext.get(Message.CONTENT_TYPE);
-                assertEquals("text/xml;charset=utf-8", contentType.toLowerCase());
+                
+                
+                assertTrue(contentType.toLowerCase().contains("text/xml"));
+                assertTrue(contentType.toLowerCase().contains("charset=utf-8"));
                 Integer responseCode = (Integer) responseContext.get(Message.RESPONSE_CODE);
                 assertEquals(500, responseCode.intValue());                
                 assertNotNull(brlf.getFaultInfo());

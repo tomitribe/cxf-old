@@ -154,6 +154,11 @@ public class HTTPConduit
     public static final String KEY_HTTP_CONNECTION = "http.connection";
 
     /**
+     * The Logger for this class.
+     */
+    protected static final Logger LOG = LogUtils.getL7dLogger(HTTPConduit.class);
+
+    /**
      * This constant is the Message(Map) key for a list of visited URLs that
      * is used in redirect loop protection.
      */
@@ -165,10 +170,6 @@ public class HTTPConduit
      */
     private static final String KEY_AUTH_URLS = "AuthURLs";
     
-    /**
-     * The Logger for this class.
-     */
-    private static final Logger LOG = LogUtils.getL7dLogger(HTTPConduit.class);
     
     /**
      * This constant holds the suffix ".http-conduit" that is appended to the 
@@ -189,7 +190,7 @@ public class HTTPConduit
     /**
      *  This field holds a reference to the CXF bus associated this conduit.
      */
-    private final Bus bus;
+    protected final Bus bus;
 
     /**
      * This field is used for two reasons. First it provides the base name for
@@ -197,16 +198,16 @@ public class HTTPConduit
      * address information, should it not be supplied in the Message Map, by the 
      * Message.ENDPOINT_ADDRESS property.
      */
-    private final EndpointInfo endpointInfo;
+    protected final EndpointInfo endpointInfo;
     
 
     /**
      * This field holds the "default" URL for this particular conduit, which
      * is created on demand.
      */
-    private URL defaultEndpointURL;
-    private String defaultEndpointURLString;
-    private boolean fromEndpointReferenceType;
+    protected URL defaultEndpointURL;
+    protected String defaultEndpointURLString;
+    protected boolean fromEndpointReferenceType;
 
     // Configurable values
     
@@ -215,37 +216,46 @@ public class HTTPConduit
      * This field is injected via spring configuration based on the conduit 
      * name.
      */
-    private HTTPClientPolicy clientSidePolicy;
+    protected HTTPClientPolicy clientSidePolicy;
     
     /**
      * This field holds the password authorization configuration.
      * This field is injected via spring configuration based on the conduit 
      * name.
     */
-    private AuthorizationPolicy authorizationPolicy;
+    protected AuthorizationPolicy authorizationPolicy;
     
     /**
      * This field holds the password authorization configuration for the 
      * configured proxy. This field is injected via spring configuration based 
      * on the conduit name.
      */
-    private ProxyAuthorizationPolicy proxyAuthorizationPolicy;
+    protected ProxyAuthorizationPolicy proxyAuthorizationPolicy;
 
     /**
      * This field holds the configuration TLS configuration which
      * is programmatically configured. 
      */
-    private TLSClientParameters tlsClientParameters;
+    protected TLSClientParameters tlsClientParameters;
     
     /**
      * This field contains the MessageTrustDecider.
      */
-    private MessageTrustDecider trustDecider;
+    protected MessageTrustDecider trustDecider;
     
     /**
      * This field contains the HttpAuthSupplier.
      */
-    private HttpAuthSupplier authSupplier;
+    protected HttpAuthSupplier authSupplier;
+
+
+    /**
+     * Variables for holding session state if sessions are supposed to be maintained
+     */
+    protected Map<String, Cookie> sessionCookies = new ConcurrentHashMap<String, Cookie>();
+    protected boolean maintainSession;
+    
+    protected CertConstraints certConstraints;
 
     /**
      * This boolean signfies that that finalizeConfig is called, which is
@@ -254,15 +264,7 @@ public class HTTPConduit
      * should be handled as such.
      */
     private boolean configFinalized;
-
-    /**
-     * Variables for holding session state if sessions are supposed to be maintained
-     */
-    private Map<String, Cookie> sessionCookies = new ConcurrentHashMap<String, Cookie>();
-    private boolean maintainSession;
     
-    private CertConstraints certConstraints;
-
     /**
      * Constructor
      * 
@@ -733,7 +735,7 @@ public class HTTPConduit
      * 
      * @throws MalformedURLException
      */
-    private URL setupURL(Message message) throws MalformedURLException {
+    protected URL setupURL(Message message) throws MalformedURLException {
         String result = (String)message.get(Message.ENDPOINT_ADDRESS);
         String pathInfo = (String)message.get(Message.PATH_INFO);
         String queryString = (String)message.get(Message.QUERY_STRING);
@@ -828,7 +830,7 @@ public class HTTPConduit
      * @param message The outbound message
      * @return The PROTOCOL_HEADERS map
      */
-    private Map<String, List<String>> getSetProtocolHeaders(Message message) {
+    protected Map<String, List<String>> getSetProtocolHeaders(Message message) {
         Map<String, List<String>> headers =
             CastUtils.cast((Map<?, ?>)message.get(Message.PROTOCOL_HEADERS));        
         if (null == headers) {
@@ -882,7 +884,7 @@ public class HTTPConduit
      * @param level   The Logging Level.
      * @param headers The Message protocol headers.
      */
-    private void logProtocolHeaders(
+    protected void logProtocolHeaders(
         Level   level,
         Message message
     ) {
@@ -946,7 +948,7 @@ public class HTTPConduit
      * 
      * @param exchange The exchange in question
      */
-    private boolean isOneway(Exchange exchange) {
+    protected final boolean isOneway(Exchange exchange) {
         return exchange != null && exchange.isOneWay();
     }
 
@@ -959,15 +961,16 @@ public class HTTPConduit
      */
     protected static InputStream getPartialResponse(
         HttpURLConnection connection,
-        int responseCode
+        int responseCode,
+        Map<String, List<String>> headers
     ) throws IOException {
         InputStream in = null;
         if (responseCode == HttpURLConnection.HTTP_ACCEPTED
             || responseCode == HttpURLConnection.HTTP_OK) {
             if (connection.getContentLength() > 0) {
                 in = connection.getInputStream();
-            } else if (hasChunkedResponse(connection) 
-                       || hasEofTerminatedResponse(connection)) {
+            } else if (hasChunkedResponse(headers) 
+                       || hasEofTerminatedResponse(headers)) {
                 // ensure chunked or EOF-terminated response is non-empty
                 in = getNonEmptyContent(connection);        
             }
@@ -977,22 +980,36 @@ public class HTTPConduit
     
     /**
      * @param connection the given HttpURLConnection
-     * @return true iff the connection has a chunked response pending
+     * @return true if the connection has a chunked response pending
      */
-    private static boolean hasChunkedResponse(HttpURLConnection connection) {
-        return HttpHeaderHelper.CHUNKED.equalsIgnoreCase(
-                   connection.getHeaderField(HttpHeaderHelper.TRANSFER_ENCODING));
+    protected static boolean hasChunkedResponse(Map<String, List<String>> headers) {
+        List<String> s = headers.get(HttpHeaderHelper.TRANSFER_ENCODING);
+        if (s != null) {
+            for (String s2 : s) {
+                if (HttpHeaderHelper.CHUNKED.equalsIgnoreCase(s2)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     
     /**
      * @param connection the given HttpURLConnection
-     * @return true iff the connection has a chunked response pending
+     * @return true if the connection should be closed at EOF
      */
-    private static boolean hasEofTerminatedResponse(
-        HttpURLConnection connection
+    protected static boolean hasEofTerminatedResponse(
+        Map<String, List<String>> headers
     ) {
-        return HttpHeaderHelper.CLOSE.equalsIgnoreCase(
-                   connection.getHeaderField(HttpHeaderHelper.CONNECTION));
+        List<String> s = headers.get(HttpHeaderHelper.CONNECTION);
+        if (s != null) {
+            for (String s2 : s) {
+                if (HttpHeaderHelper.CLOSE.equalsIgnoreCase(s2)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -1058,7 +1075,7 @@ public class HTTPConduit
      * @param message
      * @param headers
      */
-    private void setHeadersByAuthorizationPolicy(
+    protected void setHeadersByAuthorizationPolicy(
             Message message,
             URL url,
             Map<String, List<String>> headers
@@ -1129,7 +1146,7 @@ public class HTTPConduit
             }
         }
     }
-    private static List<String> createMutableList(String val) {
+    public static List<String> createMutableList(String val) {
         return new ArrayList<String>(Arrays.asList(new String[] {val}));
     }
     /**
@@ -1199,7 +1216,7 @@ public class HTTPConduit
      * @param url     The URL the message is going to.
      * @param headers The headers in the outgoing message.
      */
-    private void setHeadersByPolicy(
+    protected void setHeadersByPolicy(
         Message message,
         URL     url,
         Map<String, List<String>> headers
@@ -1454,7 +1471,6 @@ public class HTTPConduit
             // it is meant to make it to the end. (Too bad that information
             // went to every URL along the way, but that's what the user 
             // wants!
-            // TODO: Make this issue a security release note.
             setHeadersByAuthorizationPolicy(message, url, headers);
             
             connection = retransmit(
@@ -1471,7 +1487,7 @@ public class HTTPConduit
      * @param message The message where the Set of URLs is stored.
      * @return The modifiable set of URLs that were visited.
      */
-    private Set<String> getSetAuthoriationURLs(Message message) {
+    protected Set<String> getSetAuthoriationURLs(Message message) {
         @SuppressWarnings("unchecked")
         Set<String> authURLs = (Set<String>) message.get(KEY_AUTH_URLS);
         if (authURLs == null) {
@@ -1489,7 +1505,7 @@ public class HTTPConduit
      * @param message The message where the Set is stored.
      * @return The modifiable set of URLs that were visited.
      */
-    private Set<String> getSetVisitedURLs(Message message) {
+    protected Set<String> getSetVisitedURLs(Message message) {
         @SuppressWarnings("unchecked")
         Set<String> visitedURLs = (Set<String>) message.get(KEY_VISITED_URLS);
         if (visitedURLs == null) {
@@ -1528,7 +1544,7 @@ public class HTTPConduit
         
         URL currentURL = connection.getURL();
         
-        String realm = extractAuthorizationRealm(connection.getHeaderFields());
+        String realm = extractAuthorizationRealm(connection.getHeaderFields().get("WWW-Authenticate"));
         
         Set<String> authURLs = getSetAuthoriationURLs(message);
         
@@ -1660,10 +1676,9 @@ public class HTTPConduit
      * @param headers The Http Response Headers
      * @return The realm, or null if it is non-existent.
      */
-    private String extractAuthorizationRealm(
-            Map<String, List<String>> headers
+    protected String extractAuthorizationRealm(
+            List<String> auth
     ) {
-        List<String> auth = headers.get("WWW-Authenticate");
         if (auth != null) {
             for (String a : auth) {
                 int idx = a.indexOf("realm=");
@@ -2111,10 +2126,19 @@ public class HTTPConduit
             }
 
             
+            Map<String, List<String>> origHeaders = connection.getHeaderFields();
+            Map<String, List<String>> headers = 
+                new HashMap<String, List<String>>();
+            for (String key : connection.getHeaderFields().keySet()) {
+                if (key != null) {
+                    headers.put(HttpHeaderHelper.getHeaderKey(key), 
+                        origHeaders.get(key));
+                }
+            }
 
             InputStream in = null;
             if (isOneway(exchange)) {
-                in = getPartialResponse(connection, responseCode);
+                in = getPartialResponse(connection, responseCode, headers);
                 if (in == null) {
                     // oneway operation or decoupled MEP without 
                     // partial response
@@ -2133,15 +2157,6 @@ public class HTTPConduit
             
             Message inMessage = new MessageImpl();
             inMessage.setExchange(exchange);
-            Map<String, List<String>> origHeaders = connection.getHeaderFields();
-            Map<String, List<String>> headers = 
-                new HashMap<String, List<String>>();
-            for (String key : connection.getHeaderFields().keySet()) {
-                if (key != null) {
-                    headers.put(HttpHeaderHelper.getHeaderKey(key), 
-                        origHeaders.get(key));
-                }
-            }
             
             inMessage.put(Message.PROTOCOL_HEADERS, headers);
             inMessage.put(Message.RESPONSE_CODE, responseCode);

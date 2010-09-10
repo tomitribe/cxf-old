@@ -127,6 +127,7 @@ public class ClientServerSwaTest extends AbstractBusClientServerTestBase {
         String string = IOUtils.newStringFromBytes(b);
         assertEquals("testfoobar", string);
         assertEquals("Hi", textHolder.value);
+        bis.close();
     }
     
     @Test
@@ -157,6 +158,7 @@ public class ClientServerSwaTest extends AbstractBusClientServerTestBase {
         assertEquals("testfoobar", string);
         assertEquals("Hi", textHolder.value);
         assertEquals("Header", headerHolder.value);
+        bis.close();
     }
     
     @Test
@@ -184,6 +186,7 @@ public class ClientServerSwaTest extends AbstractBusClientServerTestBase {
         bis.read(b, 0, 10);
         String string = IOUtils.newStringFromBytes(b);
         assertEquals("testfoobar", string);
+        bis.close();
     }
     
     @Test
@@ -224,10 +227,14 @@ public class ClientServerSwaTest extends AbstractBusClientServerTestBase {
                                                                  attach5);
         
         assertNotNull(response);
-        Map<?, ?> map = CastUtils.cast((Map<?, ?>)((BindingProvider)port).getResponseContext()
+        Map<String, DataHandler> map 
+            = CastUtils.cast((Map<?, ?>)((BindingProvider)port).getResponseContext()
                                            .get(MessageContext.INBOUND_MESSAGE_ATTACHMENTS));
         assertNotNull(map);
         assertEquals(5, map.size()); 
+        for (Map.Entry<String, DataHandler> ent : map.entrySet()) {
+            ent.getValue().getInputStream().close();
+        }
     }
     
     @Test

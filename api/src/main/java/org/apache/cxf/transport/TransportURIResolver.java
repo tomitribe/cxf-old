@@ -105,6 +105,7 @@ public class TransportURIResolver extends ExtendedURIResolver {
                     Message message = new MessageImpl();
                     Exchange exch = new ExchangeImpl();
                     message.setExchange(exch);
+                    exch.put(Bus.class, bus);
                     
                     message.put(Message.HTTP_REQUEST_METHOD, "GET");
                     c.setMessageObserver(new MessageObserver() {
@@ -116,11 +117,22 @@ public class TransportURIResolver extends ExtendedURIResolver {
                                 c.close(message);
                             } catch (IOException e) {
                                 //ignore
+                                message.getExchange().put(Exception.class, e);
+                            } finally {
+                                synchronized (message.getExchange()) {
+                                    message.getExchange().notifyAll();
+                                }
                             }
                         }
                     });
-                    c.prepare(message);
-                    c.close(message);
+                    synchronized (exch) {
+                        c.prepare(message);
+                        c.close(message);
+                        if (exch.get(InputStream.class) == null
+                            && exch.get(Exception.class) == null) {
+                            exch.wait();
+                        }
+                    }
                     InputStream ins = exch.get(InputStream.class);
                     resourceOpened.addElement(ins);
                     InputSource src = new InputSource(ins);
@@ -132,6 +144,7 @@ public class TransportURIResolver extends ExtendedURIResolver {
                 }
             } catch (Exception e) {
                 //ignore
+                e.printStackTrace();
             }
         }
         if (is == null 

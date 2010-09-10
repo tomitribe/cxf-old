@@ -91,6 +91,8 @@ public class MtomServerTest extends AbstractCXFTest {
         conduit.setMessageObserver(obs);
 
         Message m = new MessageImpl();
+        m.setExchange(new ExchangeImpl());
+        m.getExchange().put(Bus.class, getBus());
         String ct = "multipart/related; type=\"application/xop+xml\"; "
                     + "start=\"<soap.xml@xfire.codehaus.org>\"; "
                     + "start-info=\"text/xml\"; "
@@ -157,6 +159,8 @@ public class MtomServerTest extends AbstractCXFTest {
         conduit.setMessageObserver(obs);
 
         Message m = new MessageImpl();
+        m.setExchange(new ExchangeImpl());
+        m.getExchange().put(Bus.class, getBus());
         String ct = "multipart/related; type=\"application/xop+xml\"; "
                     + "start=\"<soap.xml@xfire.codehaus.org>\"; "
                     + "start-info=\"text/xml; charset=utf-8\"; "
@@ -182,6 +186,8 @@ public class MtomServerTest extends AbstractCXFTest {
 
         byte[] res = obs.getResponseStream().toByteArray();
         MessageImpl resMsg = new MessageImpl();
+        resMsg.setExchange(new ExchangeImpl());
+        resMsg.getExchange().put(Bus.class, getBus());
         resMsg.setContent(InputStream.class, new ByteArrayInputStream(res));
         resMsg.put(Message.CONTENT_TYPE, obs.getResponseContentType());
         resMsg.setExchange(new ExchangeImpl());
