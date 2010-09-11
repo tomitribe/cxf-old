@@ -44,6 +44,7 @@ import org.apache.cxf.message.Exchange;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageImpl;
 import org.apache.cxf.message.MessageUtils;
+import org.apache.cxf.phase.PhaseInterceptorChain;
 import org.apache.cxf.service.model.EndpointInfo;
 import org.apache.cxf.transport.http.Cookie;
 import org.apache.cxf.transport.http.DigestAuthSupplier;
@@ -400,7 +401,8 @@ public class AsyncHTTPConduit extends HTTPConduit {
             if (responseCode == HttpURLConnection.HTTP_ACCEPTED
                 || responseCode == HttpURLConnection.HTTP_OK) {
                 int cl = -1;
-                List<String> cls = headers.get("content-length");
+                List<String> cls = headers.get(HttpHeaderHelper
+                                               .getHeaderKey(HttpHeaderHelper.CONTENT_LENGTH));
                 if (cls != null) {
                     cl = Integer.parseInt(cls.get(0));
                 }
@@ -488,10 +490,13 @@ public class AsyncHTTPConduit extends HTTPConduit {
                 && !MessageUtils.isTrue(outMessage.getContextualProperty(
                     "org.apache.cxf.http.no_io_exceptions"))) {
                 
-                Exception ex = new Fault(new IOException("HTTP response '" + responseCode + ": " 
-                                + response.getStatusLine().getReasonPhrase() + "'"));
+                Exception ex = new IOException("HTTP response '" + responseCode + ": " 
+                                              + response.getStatusLine().getReasonPhrase() + "'");
+                //ex = new Fault(ex);
                 exchange.put(Exception.class, ex);
                 inMessage.setContent(Exception.class, ex);
+                ((PhaseInterceptorChain)outMessage.getInterceptorChain())
+                    .unwind(outMessage);
                 incomingObserver.onMessage(inMessage);
                 response.getEntity().getContent().close();
                 return;
@@ -507,16 +512,6 @@ public class AsyncHTTPConduit extends HTTPConduit {
                     response.getEntity().getContent().close();
                     return;
                 }
-            } else {
-                //not going to be resending or anything, clear out the stuff in the out message
-                //to free memory
-                /*
-                outMessage.removeContent(OutputStream.class);
-                if (cachingForRetransmission && cachedStream != null) {
-                    cachedStream.close();
-                }
-                cachedStream = null;
-                */
             }
             
 

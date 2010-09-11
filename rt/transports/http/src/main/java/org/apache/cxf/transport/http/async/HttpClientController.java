@@ -133,8 +133,10 @@ public class HttpClientController implements BusLifeCycleListener,
                 protected void handleTimeout(final NHttpConnection conn) {
                     super.handleTimeout(conn);
                     MessageHolder m = (MessageHolder)conn.getContext().getAttribute("MESSAGE");
-                    m.get().get(AsyncHTTPConduit.class).sendException(m.get(),
+                    if (m.get() != null) {
+                        m.get().get(AsyncHTTPConduit.class).sendException(m.get(),
                                                                       new SocketTimeoutException());
+                    }
                 }
             };
 
