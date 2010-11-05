@@ -224,7 +224,7 @@ public abstract class AbstractUsernameTokenAuthenticatingInterceptor extends WSS
             if (c instanceof WSPasswordCallback) {
                 WSPasswordCallback pc = (WSPasswordCallback)c;
                 if (WSConstants.PASSWORD_TEXT.equals(pc.getPasswordType()) 
-                    && pc.getUsage() == WSPasswordCallback.USERNAME_TOKEN_UNKNOWN) {
+                    && pc.getUsage() == WSPasswordCallback.USERNAME_TOKEN) {
                     AbstractUsernameTokenAuthenticatingInterceptor.this.setSubject(
                         pc.getIdentifier(), pc.getPassword(), false, null, null);
                 } 

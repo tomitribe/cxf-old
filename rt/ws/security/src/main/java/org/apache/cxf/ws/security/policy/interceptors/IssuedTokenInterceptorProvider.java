@@ -21,6 +21,7 @@ package org.apache.cxf.ws.security.policy.interceptors;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Vector;
 
 
@@ -215,7 +216,7 @@ public class IssuedTokenInterceptorProvider extends AbstractPolicyInterceptorPro
                             WSHandlerResult rResult =
                                     (WSHandlerResult) results.get(i);
     
-                            Vector wsSecEngineResults = rResult.getResults();
+                            List wsSecEngineResults = rResult.getResults();
     
                             for (int j = 0; j < wsSecEngineResults.size(); j++) {
                                 //WSSecurityEngineResult wser =

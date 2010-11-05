@@ -21,6 +21,7 @@ package org.apache.cxf.ws.security.wss4j.policyhandlers;
 
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -373,16 +374,22 @@ public class AsymmetricBindingHandler extends AbstractBindingBuilder {
 
                 dkSign.setParts(sigParts);
 
-                dkSign.addReferencesToSign(sigParts, secHeader);
-
-                // Do signature
-                dkSign.computeSignature();
-                signatures.add(dkSign.getSignatureValue());
+                List referenceList = dkSign.addReferencesToSign(sigParts, secHeader);
 
                 // Add elements to header
                 addDerivedKeyElement(dkSign.getdktElement());
-                insertBeforeBottomUp(dkSign.getSignatureElement());                
-                mainSigId = addWsuIdToElement(dkSign.getSignatureElement());
+                
+                //Do signature
+                if (bottomUpElement == null) {
+                    dkSign.computeSignature(referenceList, false, null);
+                } else {
+                    dkSign.computeSignature(referenceList, true, bottomUpElement);
+                }
+                bottomUpElement = dkSign.getSignatureElement();
+                signatures.add(dkSign.getSignatureValue());
+                
+                // TODO mainSigId = addWsuIdToElement(dkSign.getSignatureElement());
+                mainSigId = dkSign.getId();
             } catch (Exception e) {
                 //REVISIT
                 e.printStackTrace();
@@ -397,14 +404,21 @@ public class AsymmetricBindingHandler extends AbstractBindingBuilder {
             }
 
             sig.prependBSTElementToHeader(secHeader);
-            insertBeforeBottomUp(sig.getSignatureElement());
             sigParts.addAll(this.getSignedParts());
             
-            sig.addReferencesToSign(sigParts, secHeader);
-            sig.computeSignature();
+            List referenceList = sig.addReferencesToSign(sigParts, secHeader);
+            //Do signature
+            if (bottomUpElement == null) {
+                sig.computeSignature(referenceList, false, null);
+            } else {
+                sig.computeSignature(referenceList, true, bottomUpElement);
+            }
+            bottomUpElement = sig.getSignatureElement();
+            
             signatures.add(sig.getSignatureValue());
                         
-            mainSigId = addWsuIdToElement(sig.getSignatureElement());
+            //TODO mainSigId = addWsuIdToElement(sig.getSignatureElement());
+            mainSigId = sig.getId();
         }
     }
 
@@ -442,7 +456,7 @@ public class AsymmetricBindingHandler extends AbstractBindingBuilder {
             WSHandlerResult rResult =
                     (WSHandlerResult) results.get(i);
 
-            Vector wsSecEngineResults = rResult.getResults();
+            List wsSecEngineResults = rResult.getResults();
             /*
             * Scan the results for the first Signature action. Use the
             * certificate of this Signature to set the certificate for the
@@ -469,7 +483,7 @@ public class AsymmetricBindingHandler extends AbstractBindingBuilder {
             WSHandlerResult rResult =
                     (WSHandlerResult) results.get(i);
 
-            Vector wsSecEngineResults = rResult.getResults();
+            List wsSecEngineResults = rResult.getResults();
             /*
             * Scan the results for the first Signature action. Use the
             * certificate of this Signature to set the certificate for the

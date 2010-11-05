@@ -23,7 +23,9 @@ package org.apache.cxf.ws.security.wss4j.policyhandlers;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Vector;
+import java.util.logging.Level;
 
 import javax.xml.soap.SOAPMessage;
 
@@ -509,16 +511,13 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
                     
                     if (!isRequestor()) {
                         if (encrTok.getSHA1() != null) {
-                            encr.setUseKeyIdentifier(true);
                             encr.setCustomReferenceValue(encrTok.getSHA1());
                             encr.setKeyIdentifierType(WSConstants.ENCRYPTED_KEY_SHA1_IDENTIFIER);
                         } else {
-                            encr.setUseKeyIdentifier(true);
                             encr.setKeyIdentifierType(WSConstants.EMBED_SECURITY_TOKEN_REF);
                         }
                     } else {
                         if (encrToken instanceof IssuedToken) {
-                            encr.setUseKeyIdentifier(true);
                             encr.setCustomReferenceValue(SecurityTokenReference.SAML_ID_URI);
                             encr.setKeyIdentifierType(WSConstants.CUSTOM_KEY_IDENTIFIER);
                         }
@@ -627,16 +626,22 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
         }
         
         dkSign.setParts(sigs);
-        dkSign.addReferencesToSign(sigs, secHeader);
+        List referenceList = dkSign.addReferencesToSign(sigs, secHeader);
         
-        //Do signature
-        dkSign.computeSignature();
-
         //Add elements to header
         Element el = dkSign.getdktElement();
-        addDerivedKeyElement(el);  
-        insertBeforeBottomUp(dkSign.getSignatureElement());
-        this.mainSigId = addWsuIdToElement(dkSign.getSignatureElement());
+        addDerivedKeyElement(el);
+        
+        //Do signature
+        if (bottomUpElement == null) {
+            dkSign.computeSignature(referenceList, false, null);
+        } else {
+            dkSign.computeSignature(referenceList, true, bottomUpElement);
+        }
+        bottomUpElement = dkSign.getSignatureElement();
+        
+        // TODO this.mainSigId = addWsuIdToElement(dkSign.getSignatureElement());
+        this.mainSigId = dkSign.getId();
 
         return dkSign.getSignatureValue();        
     }
@@ -700,15 +705,21 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
             }
             this.message.getExchange().put(SecurityConstants.SIGNATURE_CRYPTO, crypto);
             sig.prepare(saaj.getSOAPPart(), crypto, secHeader);
+            String soap = org.apache.ws.security.util.DOM2Writer.nodeToString(saaj.getSOAPPart());
+            LOG.log(Level.FINE, "SOAP: " + soap);
             sig.setParts(sigs);
-            sig.addReferencesToSign(sigs, secHeader);
+            List referenceList = sig.addReferencesToSign(sigs, secHeader);
 
             //Do signature
-            sig.computeSignature();
+            if (bottomUpElement == null) {
+                sig.computeSignature(referenceList, false, null);
+            } else {
+                sig.computeSignature(referenceList, true, bottomUpElement);
+            }
+            bottomUpElement = sig.getSignatureElement();
 
-            Element mainSigElement = sig.getSignatureElement();
-            insertBeforeBottomUp(mainSigElement);
-            mainSigId = addWsuIdToElement(mainSigElement);
+            // TODO mainSigId = addWsuIdToElement(mainSigElement);
+            this.mainSigId = sig.getId();
             return sig.getSignatureValue();
         }
     }
@@ -747,14 +758,14 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
     
     private String getEncryptedKey() {
         
-        Vector results = (Vector)message.getExchange().getInMessage()
+        List results = (List)message.getExchange().getInMessage()
             .get(WSHandlerConstants.RECV_RESULTS);
         
         for (int i = 0; i < results.size(); i++) {
             WSHandlerResult rResult =
                     (WSHandlerResult) results.get(i);
 
-            Vector wsSecEngineResults = rResult.getResults();
+            List wsSecEngineResults = rResult.getResults();
             
             for (int j = 0; j < wsSecEngineResults.size(); j++) {
                 WSSecurityEngineResult wser =

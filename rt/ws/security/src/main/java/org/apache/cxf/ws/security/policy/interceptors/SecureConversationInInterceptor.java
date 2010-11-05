@@ -455,7 +455,7 @@ class SecureConversationInInterceptor extends AbstractPhaseInterceptor<SoapMessa
                     WSHandlerResult rResult =
                             (WSHandlerResult) results.get(i);
     
-                    Vector wsSecEngineResults = rResult.getResults();
+                    List wsSecEngineResults = rResult.getResults();
     
                     for (int j = 0; j < wsSecEngineResults.size(); j++) {
                         WSSecurityEngineResult wser =

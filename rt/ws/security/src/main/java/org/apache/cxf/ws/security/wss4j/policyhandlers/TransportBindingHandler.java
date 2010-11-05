@@ -20,6 +20,7 @@
 package org.apache.cxf.ws.security.wss4j.policyhandlers;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Vector;
 
 import javax.xml.soap.SOAPMessage;
@@ -262,13 +263,11 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
             */
             
             dkSig.setParts(sigParts);
-            dkSig.addReferencesToSign(sigParts, secHeader);
+            List referenceList = dkSig.addReferencesToSign(sigParts, secHeader);
             
             //Do signature
-            dkSig.computeSignature();
-            
             dkSig.appendDKElementToHeader(secHeader);
-            dkSig.appendSigToHeader(secHeader);
+            dkSig.computeSignature(referenceList, false, null);
             
             return dkSig.getSignatureValue();
         } else {
@@ -276,10 +275,14 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
             if (sig != null) {
                 sig.prependBSTElementToHeader(secHeader);
             
-                sig.addReferencesToSign(sigParts, secHeader);
-                insertBeforeBottomUp(sig.getSignatureElement());
-            
-                sig.computeSignature();
+                List referenceList = sig.addReferencesToSign(sigParts, secHeader);
+                
+                if (bottomUpElement == null) {
+                    sig.computeSignature(referenceList, false, null);
+                } else {
+                    sig.computeSignature(referenceList, true, bottomUpElement);
+                }
+                bottomUpElement = sig.getSignatureElement();
             
                 return sig.getSignatureValue();
             } else {
@@ -375,12 +378,10 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
             addDerivedKeyElement(dkSign.getdktElement());
           
             dkSign.setParts(sigParts);
-            dkSign.addReferencesToSign(sigParts, secHeader);
+            List referenceList = dkSign.addReferencesToSign(sigParts, secHeader);
           
             //Do signature
-            dkSign.computeSignature();
-          
-            dkSign.appendSigToHeader(secHeader);
+            dkSign.computeSignature(referenceList, false, null);
           
             return dkSign.getSignatureValue();
         } else {
@@ -425,14 +426,16 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
             sig.prepare(doc, crypto, secHeader);
 
             sig.setParts(sigParts);
-            sig.addReferencesToSign(sigParts, secHeader);
+            List referenceList = sig.addReferencesToSign(sigParts, secHeader);
 
             //Do signature
-            sig.computeSignature();
-
-            //Add elements to header
-            insertBeforeBottomUp(sig.getSignatureElement());
-
+            if (bottomUpElement == null) {
+                sig.computeSignature(referenceList, false, null);
+            } else {
+                sig.computeSignature(referenceList, true, bottomUpElement);
+            }
+            bottomUpElement = sig.getSignatureElement();
+        
             return sig.getSignatureValue();
         }
     }

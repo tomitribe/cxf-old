@@ -192,7 +192,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         try {
             reqData.setMsgContext(msg);
             computeAction(msg, reqData);
-            Vector actions = new Vector();
+            List actions = new Vector();
             String action = getAction(msg, version);
 
             int doAction = WSSecurityUtil.decodeAction(action, actions);
@@ -207,7 +207,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
              */
             doReceiverAction(doAction, reqData);
             
-            Vector wsResult = null;
+            List wsResult = null;
             if (doTimeLog) {
                 t1 = System.currentTimeMillis();
             }
@@ -284,7 +284,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         }
     }
 
-    private void checkActions(SoapMessage msg, RequestData reqData, Vector wsResult, Vector actions) 
+    private void checkActions(SoapMessage msg, RequestData reqData, List wsResult, List actions) 
         throws WSSecurityException {
         /*
          * now check the security actions: do they match, in any order?
@@ -294,7 +294,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
             throw new WSSecurityException(WSSecurityException.INVALID_SECURITY);
         }
     }
-    private void checkSignatures(SoapMessage msg, RequestData reqData, Vector wsResult) 
+    private void checkSignatures(SoapMessage msg, RequestData reqData, List wsResult) 
         throws WSSecurityException {
         /*
          * Now we can check the certificate used to sign the message. In the
@@ -306,7 +306,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
          */
 
         // Extract the signature action result from the action vector
-        Vector signatureResults = new Vector();
+        List signatureResults = new Vector();
         signatureResults = 
             WSSecurityUtil.fetchAllActionResults(wsResult, WSConstants.SIGN, signatureResults);
 
@@ -327,7 +327,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         }
     }
     
-    protected void checkTimestamps(SoapMessage msg, RequestData reqData, Vector wsResult) 
+    protected void checkTimestamps(SoapMessage msg, RequestData reqData, List wsResult) 
         throws WSSecurityException {
         /*
          * Perform further checks on the timestamp that was transmitted in
@@ -338,7 +338,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
          * other validation algorithms for subclasses.
          */
         // Extract the timestamp action result from the action vector
-        Vector timestampResults = new Vector();
+        List timestampResults = new Vector();
         timestampResults = 
             WSSecurityUtil.fetchAllActionResults(wsResult, WSConstants.TS, timestampResults);
 
@@ -368,12 +368,12 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         
     }
 
-    protected void doResults(SoapMessage msg, String actor, SOAPMessage doc, Vector wsResult)
+    protected void doResults(SoapMessage msg, String actor, SOAPMessage doc, List wsResult)
         throws SOAPException, XMLStreamException, WSSecurityException {
         doResults(msg, actor, doc, wsResult, false);
     }
 
-    protected void doResults(SoapMessage msg, String actor, SOAPMessage doc, Vector wsResult, 
+    protected void doResults(SoapMessage msg, String actor, SOAPMessage doc, List wsResult, 
         boolean utWithCallbacks) throws SOAPException, XMLStreamException, WSSecurityException {
         /*
          * All ok up to this point. Now construct and setup the security result

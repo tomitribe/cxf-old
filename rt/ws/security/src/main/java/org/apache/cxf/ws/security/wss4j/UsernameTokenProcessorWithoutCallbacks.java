@@ -20,7 +20,7 @@
 package org.apache.cxf.ws.security.wss4j;
 
 import java.security.Principal;
-import java.util.Vector;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -54,7 +54,7 @@ public class UsernameTokenProcessorWithoutCallbacks implements Processor {
     
     @SuppressWarnings("unchecked")
     public void handleToken(Element elem, Crypto crypto, Crypto decCrypto, CallbackHandler cb, 
-        WSDocInfo wsDocInfo, Vector returnResults, WSSConfig wsc) throws WSSecurityException {
+        WSDocInfo wsDocInfo, List returnResults, WSSConfig wsc) throws WSSecurityException {
         if (LOG.isLoggable(Level.FINE)) {
             LOG.fine("Found UsernameToken list element");
         }

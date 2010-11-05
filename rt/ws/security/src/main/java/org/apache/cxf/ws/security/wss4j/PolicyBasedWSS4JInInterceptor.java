@@ -455,7 +455,7 @@ public class PolicyBasedWSS4JInInterceptor extends WSS4JInInterceptor {
     }
     
     protected void doResults(SoapMessage msg, String actor, 
-                             SOAPMessage doc, Vector results, boolean utWithCallbacks) 
+                             SOAPMessage doc, List results, boolean utWithCallbacks) 
         throws SOAPException, XMLStreamException, WSSecurityException {
         
         AssertionInfoMap aim = msg.get(AssertionInfoMap.class);

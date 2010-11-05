@@ -22,10 +22,13 @@ package org.apache.cxf.ws.security.wss4j.policyhandlers;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,6 +43,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.security.auth.callback.CallbackHandler;
+import javax.xml.crypto.XMLStructure;
+import javax.xml.crypto.dom.DOMStructure;
+import javax.xml.crypto.dsig.DigestMethod;
+import javax.xml.crypto.dsig.Transform;
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPHeader;
@@ -121,16 +128,13 @@ import org.apache.ws.security.message.WSSecUsernameToken;
 import org.apache.ws.security.message.token.SecurityTokenReference;
 import org.apache.ws.security.transform.STRTransform;
 import org.apache.ws.security.util.WSSecurityUtil;
-import org.apache.xml.security.signature.XMLSignatureException;
-import org.apache.xml.security.transforms.TransformationException;
-import org.apache.xml.security.transforms.Transforms;
 
 /**
  * 
  */
 public abstract class AbstractBindingBuilder {
     public static final String CRYPTO_CACHE = "ws-security.crypto.cache";
-    private static final Logger LOG = LogUtils.getL7dLogger(AbstractBindingBuilder.class);
+    protected static final Logger LOG = LogUtils.getL7dLogger(AbstractBindingBuilder.class);
     
     
     protected SPConstants.ProtectionOrder protectionOrder = SPConstants.ProtectionOrder.SignBeforeEncrypting;
@@ -569,8 +573,7 @@ public abstract class AbstractBindingBuilder {
                     // coupled with WSSecSignatureHelper. This approach is used so that
                     // we can force WSS4J to sign the assertion through a STR that
                     // WSS4J did not create during message signature creation.
-                    part = new WSEncryptionPart(tempSig.getStrUri(), "ExternalSTRTransform", "Element",
-                          WSConstants.PART_TYPE_ELEMENT);
+                    part = new WSEncryptionPart(tempSig.getStrUri(), "ExternalSTRTransform", "Element");
             
                 } else {
                     if (tempSig.getBSTTokenId() != null) {
@@ -922,13 +925,11 @@ public abstract class AbstractBindingBuilder {
             if (sign) {
                 result.add(new WSEncryptionPart(
                         id,
-                        "Element",
-                        WSConstants.PART_TYPE_BODY));
+                        "Element"));
             } else {
                 result.add(new WSEncryptionPart(
                         id,
-                        "Content",
-                        WSConstants.PART_TYPE_BODY));
+                        "Content"));
             }
         }
         
@@ -958,8 +959,7 @@ public abstract class AbstractBindingBuilder {
                     final String id = this.addWsuIdToElement(el);
                     result.add(new WSEncryptionPart(
                             id,
-                            part.getEncModifier(),
-                            WSConstants.PART_TYPE_HEADER));
+                            part.getEncModifier()));
                 }
             }
         }
@@ -1020,8 +1020,7 @@ public abstract class AbstractBindingBuilder {
                         
                         WSEncryptionPart part = new WSEncryptionPart(
                                 id, 
-                                encryptionModifier,
-                                WSConstants.PART_TYPE_ELEMENT);
+                                encryptionModifier);
                         part.setXpath(expression);
                         
                         /**
@@ -1221,7 +1220,7 @@ public abstract class AbstractBindingBuilder {
             WSHandlerResult rResult =
                     (WSHandlerResult) results.get(i);
 
-            Vector wsSecEngineResults = rResult.getResults();
+            List wsSecEngineResults = rResult.getResults();
             /*
             * Scan the results for the first Signature action. Use the
             * certificate of this Signature to set the certificate for the
@@ -1256,7 +1255,7 @@ public abstract class AbstractBindingBuilder {
             WSHandlerResult rResult =
                      (WSHandlerResult) results.get(i);
 
-            Vector wsSecEngineResults = rResult.getResults();
+            List wsSecEngineResults = rResult.getResults();
             /*
              * Scan the results for a username token. Use the username
              * of this token to set the alias for the encryption user
@@ -1386,9 +1385,8 @@ public abstract class AbstractBindingBuilder {
                     sigParts.add(new WSEncryptionPart(sig.getBSTTokenId()));
                 }
                 try {
-                    sig.addReferencesToSign(sigParts, secHeader);
-                    sig.computeSignature();
-                    sig.appendToHeader(secHeader);
+                    List referenceList = sig.addReferencesToSign(sigParts, secHeader);
+                    sig.computeSignature(referenceList, false, null);
                     
                     signatures.add(sig.getSignatureValue());
                     if (isSigProtect) {
@@ -1488,14 +1486,13 @@ public abstract class AbstractBindingBuilder {
         
         dkSign.setParts(sigParts);
         
-        dkSign.addReferencesToSign(sigParts, secHeader);
+        List referenceList = dkSign.addReferencesToSign(sigParts, secHeader);
         
-        //Do signature
-        dkSign.computeSignature();
-
         //Add elements to header
         addSupportingElement(dkSign.getdktElement());
-        secHeader.getSecurityHeader().appendChild(dkSign.getSignatureElement());
+        
+        //Do signature
+        dkSign.computeSignature(referenceList, false, null);
         
         signatures.add(dkSign.getSignatureValue());
     }
@@ -1546,13 +1543,11 @@ public abstract class AbstractBindingBuilder {
         sig.prepare(doc, getSignatureCrypto(null), secHeader);
 
         sig.setParts(sigParts);
-        sig.addReferencesToSign(sigParts, secHeader);
+        List referenceList = sig.addReferencesToSign(sigParts, secHeader);
 
         //Do signature
-        sig.computeSignature();
+        sig.computeSignature(referenceList, false, null);
         signatures.add(sig.getSignatureValue());
-
-        secHeader.getSecurityHeader().appendChild(sig.getSignatureElement());
     }
     protected void assertSupportingTokens(Vector<WSEncryptionPart> sigs) {
         assertSupportingTokens(findAndAssertPolicy(SP12Constants.SIGNED_SUPPORTING_TOKENS));
@@ -1728,8 +1723,7 @@ public abstract class AbstractBindingBuilder {
                     signedEncryptedParts.add(
                             new WSEncryptionPart(
                                     encryptedPart.getEncId(),
-                                    encryptedPart.getEncModifier(),
-                                    encryptedPart.getType()));
+                                    encryptedPart.getEncModifier()));
                 }
             }
         }
@@ -1747,36 +1741,62 @@ public abstract class AbstractBindingBuilder {
         }
 
         @Override
-        public void addReferencesToSign(Vector references,
+        public List addReferencesToSign(List references,
                 WSSecHeader secHeader) throws WSSecurityException {
             final Vector<Object> unalteredReferences = new Vector<Object>();
 
+            List uberReferences = new Vector();
             try {
+                DigestMethod digestMethod;
+                try {
+                    digestMethod = signatureFactory.newDigestMethod(this.getDigestAlgo(), null);
+                } catch (Exception ex) {
+                    throw new WSSecurityException(
+                        WSSecurityException.FAILED_SIGNATURE, "noXMLSig", null, ex
+                    );
+                }
+                
                 for (int part = 0; part < references.size(); part++) {
                     final WSEncryptionPart encPart = (WSEncryptionPart) references.get(part);
 
                     final String elemName = encPart.getName();
-                    final Transforms transforms = new Transforms(document);
 
                     if (elemName != null && "ExternalSTRTransform".equals(encPart.getNamespace())) {
                         final Element ctx = this.createSTRParameter(document);
-                        transforms.addTransform(STRTransform.implementedTransformURI, ctx);
-                        this.sig.addDocument("#" + elemName, transforms, this.getDigestAlgo());
+                        
+                        XMLStructure structure = new DOMStructure(ctx);
+                        Transform transform =
+                            signatureFactory.newTransform(
+                                STRTransform.TRANSFORM_URI,
+                                structure
+                            );
+                        
+                        javax.xml.crypto.dsig.Reference reference = 
+                            signatureFactory.newReference(
+                                "#" + elemName, 
+                                digestMethod,
+                                Collections.singletonList(transform),
+                                null,
+                                null
+                            );
+                        uberReferences.add(reference);
                     } else {
                         unalteredReferences.add(encPart);
                     }
                 }
-            } catch (TransformationException e1) {
+            } catch (NoSuchAlgorithmException e1) {
                 throw new WSSecurityException(
                     WSSecurityException.FAILED_SIGNATURE, "noXMLSig", null, e1
                 );
-            } catch (XMLSignatureException e1) {
+            } catch (InvalidAlgorithmParameterException e1) {
                 throw new WSSecurityException(
                     WSSecurityException.FAILED_SIGNATURE, "noXMLSig", null, e1
                 );
             }
 
-            super.addReferencesToSign(unalteredReferences, secHeader);
+            List newReferences = super.addReferencesToSign(unalteredReferences, secHeader);
+            uberReferences.addAll(newReferences);
+            return uberReferences;
         }
     }
     
