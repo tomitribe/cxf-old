@@ -22,7 +22,6 @@ package org.apache.cxf.ws.security.policy.interceptors;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
-import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.xml.transform.dom.DOMSource;
