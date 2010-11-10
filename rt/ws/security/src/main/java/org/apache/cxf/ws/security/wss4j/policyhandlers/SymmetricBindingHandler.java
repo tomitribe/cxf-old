@@ -640,8 +640,7 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
         }
         bottomUpElement = dkSign.getSignatureElement();
         
-        // TODO this.mainSigId = addWsuIdToElement(dkSign.getSignatureElement());
-        this.mainSigId = dkSign.getId();
+        this.mainSigId = dkSign.getSignatureId();
 
         return dkSign.getSignatureValue();        
     }
@@ -718,7 +717,6 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
             }
             bottomUpElement = sig.getSignatureElement();
 
-            // TODO mainSigId = addWsuIdToElement(mainSigElement);
             this.mainSigId = sig.getId();
             return sig.getSignatureValue();
         }
