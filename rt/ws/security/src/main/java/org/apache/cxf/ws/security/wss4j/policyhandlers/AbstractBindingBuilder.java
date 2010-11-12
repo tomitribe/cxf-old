@@ -1743,7 +1743,7 @@ public abstract class AbstractBindingBuilder {
         @Override
         public List addReferencesToSign(List references,
                 WSSecHeader secHeader) throws WSSecurityException {
-            final Vector<Object> unalteredReferences = new Vector<Object>();
+            final List<WSEncryptionPart> unalteredReferences = new Vector<WSEncryptionPart>();
 
             List uberReferences = new Vector();
             try {

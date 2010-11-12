@@ -287,8 +287,8 @@ public class WSS4JInOutTest extends AbstractSecurityTest {
         //
         // This should contain exactly 1 protection result
         //
-        final java.util.List<Object> protectionResults =
-            (java.util.List<Object>) handlerResults.get(0).getResults();
+        final java.util.List<WSSecurityEngineResult> protectionResults =
+            (java.util.List<WSSecurityEngineResult>) handlerResults.get(0).getResults();
         assertNotNull(protectionResults);
         assertSame(protectionResults.size(), 1);
         //
@@ -394,8 +394,8 @@ public class WSS4JInOutTest extends AbstractSecurityTest {
         //
         // This should contain exactly 2 protection results
         //
-        final java.util.List<Object> protectionResults =
-            (java.util.List<Object>) handlerResults.get(0).getResults();
+        final java.util.List<WSSecurityEngineResult> protectionResults =
+            (java.util.List<WSSecurityEngineResult>) handlerResults.get(0).getResults();
         assertNotNull(protectionResults);
         assertSame(protectionResults.size(), 2);
     }

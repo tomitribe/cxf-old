@@ -953,7 +953,7 @@ public class PolicyBasedWss4JInOutTest extends AbstractSecurityTest {
         assertNotNull(handlerResults);
         assertSame(handlerResults.size(), 1);
 
-        Vector<Object> protectionResults = new Vector<Object>();
+        List<WSSecurityEngineResult> protectionResults = new Vector<WSSecurityEngineResult>();
         WSSecurityUtil.fetchAllActionResults(handlerResults.get(0).getResults(),
                 WSConstants.ENCR, protectionResults);
         assertNotNull(protectionResults);
