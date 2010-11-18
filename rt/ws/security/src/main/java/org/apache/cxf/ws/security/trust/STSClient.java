@@ -102,6 +102,7 @@ import org.apache.neethi.Policy;
 import org.apache.neethi.PolicyComponent;
 import org.apache.ws.security.WSConstants;
 import org.apache.ws.security.WSSConfig;
+import org.apache.ws.security.WSSecurityEngineResult;
 import org.apache.ws.security.WSSecurityException;
 import org.apache.ws.security.components.crypto.Crypto;
 import org.apache.ws.security.components.crypto.CryptoFactory;
@@ -311,7 +312,7 @@ public class STSClient implements Configurable, InterceptorProvider {
     protected void setPolicyInternal(Policy newPolicy) {
         this.policy = newPolicy;
         if (algorithmSuite == null) {
-            Iterator i = policy.getAlternatives();
+            Iterator<?> i = policy.getAlternatives();
             while (i.hasNext() && algorithmSuite == null) {
                 List<PolicyComponent> p = CastUtils.cast((List)i.next());
                 for (PolicyComponent p2 : p) {
@@ -884,7 +885,7 @@ public class STSClient implements Configurable, InterceptorProvider {
                     EncryptedKeyProcessor processor = new EncryptedKeyProcessor();
 
                     processor.handleToken(child, null, createCrypto(true), createHandler(), null,
-                                          new Vector(), null);
+                                          new Vector<WSSecurityEngineResult>(), null);
 
                     secret = processor.getDecryptedBytes();
                 } catch (IOException e) {

@@ -495,7 +495,7 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
                         encr.setEncKeyIdDirectId(true);
                     }
                     if (encrTok.getTokenType() != null) {
-                        encr.setEncKeyValueType(encrTok.getTokenType());
+                        encr.setCustomReferenceValue(encrTok.getTokenType());
                     }
                     encr.setEncKeyId(encrTokId);
                     encr.setEphemeralKey(encrTok.getSecret());
