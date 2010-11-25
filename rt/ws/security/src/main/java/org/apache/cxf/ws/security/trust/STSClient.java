@@ -289,6 +289,7 @@ public class STSClient implements Configurable, InterceptorProvider {
     public void setKeySize(int i) {
         keySize = i;
     }
+    
     public int getKeySize() {
         return keySize;
     }
@@ -574,10 +575,12 @@ public class STSClient implements Configurable, InterceptorProvider {
         String ns = "http://schemas.xmlsoap.org/ws/2004/08/addressing/policy";
         return new PrimitiveAssertion(new QName(ns, "UsingAddressing"));
     }
+    
     public boolean validateSecurityToken(SecurityToken tok) throws Exception {
         return validateSecurityToken(tok,
                                      namespace + "/RSTR/Status");
     }
+    
     private boolean validateSecurityToken(SecurityToken tok, String string) 
         throws Exception {
         createClient();

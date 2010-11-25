@@ -67,7 +67,7 @@ import org.apache.ws.security.conversation.dkalgo.P_SHA1;
 import org.apache.ws.security.message.token.Reference;
 import org.apache.ws.security.message.token.SecurityTokenReference;
 import org.apache.ws.security.util.WSSecurityUtil;
-import org.apache.xml.security.utils.Base64;
+import org.apache.ws.security.util.Base64;
 
 /**
  * 
@@ -95,6 +95,7 @@ public class SecureConversationTokenInterceptorProvider extends AbstractPolicyIn
         }
         return (Trust10)ais.iterator().next().getAssertion();
     }
+    
     static final Trust13 getTrust13(AssertionInfoMap aim) {
         Collection<AssertionInfo> ais = aim.get(SP12Constants.TRUST_13);
         if (ais == null || ais.isEmpty()) {
@@ -113,6 +114,7 @@ public class SecureConversationTokenInterceptorProvider extends AbstractPolicyIn
         }
         return tokenStore;
     }
+    
     static PolicyAssertion getAddressingPolicy(AssertionInfoMap aim, boolean optional) {
         Collection<AssertionInfo> lst = aim.get(MetadataConstants.USING_ADDRESSING_2004_QNAME);
         PolicyAssertion assertion = null;
@@ -230,6 +232,7 @@ public class SecureConversationTokenInterceptorProvider extends AbstractPolicyIn
         }
         return client;
     }
+    
     static byte[] writeProofToken(String prefix, 
                                           String namespace,
                                           W3CDOMStreamWriter writer,

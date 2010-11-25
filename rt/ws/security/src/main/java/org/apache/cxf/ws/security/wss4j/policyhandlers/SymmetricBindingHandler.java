@@ -22,7 +22,7 @@ package org.apache.cxf.ws.security.wss4j.policyhandlers;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 import java.util.logging.Level;
@@ -727,9 +727,9 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
         String id = encrKey.getId();
         byte[] secret = encrKey.getEphemeralKey();
 
-        Calendar created = Calendar.getInstance();
-        Calendar expires = Calendar.getInstance();
-        expires.setTimeInMillis(System.currentTimeMillis() + 300000);
+        Date created = new Date();
+        Date expires = new Date();
+        expires.setTime(created.getTime() + 300000);
         SecurityToken tempTok = new SecurityToken(
                         id, 
                         encrKey.getEncryptedKeyElement(),
@@ -774,10 +774,10 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
                     && ((String)wser.get(WSSecurityEngineResult.TAG_ENCRYPTED_KEY_ID)).length() != 0) {
                         
                     String encryptedKeyID = (String)wser.get(WSSecurityEngineResult.TAG_ENCRYPTED_KEY_ID);
-                            
-                    Calendar created = Calendar.getInstance();
-                    Calendar expires = Calendar.getInstance();
-                    expires.setTimeInMillis(System.currentTimeMillis() + 300000);
+
+                    Date created = new Date();
+                    Date expires = new Date();
+                    expires.setTime(created.getTime() + 300000);
                     SecurityToken tempTok = new SecurityToken(encryptedKeyID, created, expires);
                     tempTok.setSecret((byte[])wser.get(WSSecurityEngineResult.TAG_DECRYPTED_KEY));
                     tempTok.setSHA1(getSHA1((byte[])wser

@@ -22,8 +22,6 @@ package org.apache.cxf.ws.security.policy.interceptors;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Vector;
-
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.endpoint.Endpoint;
@@ -48,6 +46,7 @@ import org.apache.cxf.ws.security.trust.STSClient;
 import org.apache.cxf.ws.security.wss4j.PolicyBasedWSS4JInInterceptor;
 import org.apache.cxf.ws.security.wss4j.PolicyBasedWSS4JOutInterceptor;
 import org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor;
+import org.apache.ws.security.WSSecurityEngineResult;
 import org.apache.ws.security.handler.WSHandlerConstants;
 import org.apache.ws.security.handler.WSHandlerResult;
 
@@ -200,6 +199,7 @@ public class IssuedTokenInterceptorProvider extends AbstractPolicyInterceptorPro
             addAfter(PolicyBasedWSS4JInInterceptor.class.getName());
         }
 
+        @SuppressWarnings("unchecked")
         public void handleMessage(Message message) throws Fault {
             AssertionInfoMap aim = message.get(AssertionInfoMap.class);
             // extract Assertion information
@@ -210,13 +210,12 @@ public class IssuedTokenInterceptorProvider extends AbstractPolicyInterceptorPro
                 }
                 if (!isRequestor(message)) {
                     boolean found = false;
-                    Vector results = (Vector)message.get(WSHandlerConstants.RECV_RESULTS);
+                    List<WSHandlerResult> results = 
+                        (List<WSHandlerResult>)message.get(WSHandlerConstants.RECV_RESULTS);
                     if (results != null) {
-                        for (int i = 0; i < results.size(); i++) {
-                            WSHandlerResult rResult =
-                                    (WSHandlerResult) results.get(i);
-    
-                            List wsSecEngineResults = rResult.getResults();
+                        for (WSHandlerResult rResult : results) {
+                            List<WSSecurityEngineResult> wsSecEngineResults = 
+                                rResult.getResults();
     
                             for (int j = 0; j < wsSecEngineResults.size(); j++) {
                                 //WSSecurityEngineResult wser =
