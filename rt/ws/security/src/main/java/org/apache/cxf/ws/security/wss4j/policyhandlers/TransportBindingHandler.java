@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
 
+import javax.xml.crypto.dsig.Reference;
 import javax.xml.soap.SOAPMessage;
 
 import org.w3c.dom.Document;
@@ -103,11 +104,13 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
         }
         
     }
-    private static void addSig(Vector<byte[]> signatureValues, byte[] val) {
+    
+    private static void addSig(List<byte[]> signatureValues, byte[] val) {
         if (val != null) {
             signatureValues.add(val);
         }
     }
+    
     public void handleBinding() {
         Collection<AssertionInfo> ais;
         WSSecTimestamp timestamp = createTimestamp();
@@ -115,7 +118,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
         
         try {
             if (this.isRequestor()) {
-                Vector<byte[]> signatureValues = new Vector<byte[]>();
+                List<byte[]> signatureValues = new Vector<byte[]>();
 
                 ais = aim.get(SP12Constants.SIGNED_SUPPORTING_TOKENS);
                 if (ais != null) {
@@ -220,7 +223,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
         
         Document doc = saaj.getSOAPPart();
         
-        Vector<WSEncryptionPart> sigParts = new Vector<WSEncryptionPart>();
+        List<WSEncryptionPart> sigParts = new Vector<WSEncryptionPart>();
         
         if (timestampEl != null) {
             sigParts.add(new WSEncryptionPart(timestampEl.getId()));                          
@@ -263,7 +266,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
             */
             
             dkSig.setParts(sigParts);
-            List referenceList = dkSig.addReferencesToSign(sigParts, secHeader);
+            List<Reference> referenceList = dkSig.addReferencesToSign(sigParts, secHeader);
             
             //Do signature
             dkSig.appendDKElementToHeader(secHeader);
@@ -271,11 +274,11 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
             
             return dkSig.getSignatureValue();
         } else {
-            WSSecSignature sig = getSignatureBuider(wrapper, token, false);
+            WSSecSignature sig = getSignatureBuilder(wrapper, token, false);
             if (sig != null) {
                 sig.prependBSTElementToHeader(secHeader);
             
-                List referenceList = sig.addReferencesToSign(sigParts, secHeader);
+                List<Reference> referenceList = sig.addReferencesToSign(sigParts, secHeader);
                 
                 if (bottomUpElement == null) {
                     sig.computeSignature(referenceList, false, null);
@@ -306,7 +309,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
         SPConstants.IncludeTokenType inclusion = token.getInclusion();
         boolean tokenIncluded = false;
         
-        Vector<WSEncryptionPart> sigParts = new Vector<WSEncryptionPart>();
+        List<WSEncryptionPart> sigParts = new Vector<WSEncryptionPart>();
         if (inclusion == SPConstants.IncludeTokenType.INCLUDE_TOKEN_ALWAYS
             || ((inclusion == SPConstants.IncludeTokenType.INCLUDE_TOKEN_ALWAYS_TO_RECIPIENT 
                 || inclusion == SPConstants.IncludeTokenType.INCLUDE_TOKEN_ONCE) 
@@ -367,7 +370,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
                 dkSign.setExternalKey(secTok.getSecret(), secTok.getId());
             }
           
-            //    Set the algo info
+            // Set the algo info
             dkSign.setSignatureAlgorithm(algorithmSuite.getSymmetricSignature());
             dkSign.setDerivedKeyLength(algorithmSuite.getSignatureDerivedKeyLength() / 8);
             if (token.getSPConstants() == SP12Constants.INSTANCE) {
@@ -378,7 +381,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
             addDerivedKeyElement(dkSign.getdktElement());
           
             dkSign.setParts(sigParts);
-            List referenceList = dkSign.addReferencesToSign(sigParts, secHeader);
+            List<Reference> referenceList = dkSign.addReferencesToSign(sigParts, secHeader);
           
             //Do signature
             dkSign.computeSignature(referenceList, false, null);
@@ -426,7 +429,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
             sig.prepare(doc, crypto, secHeader);
 
             sig.setParts(sigParts);
-            List referenceList = sig.addReferencesToSign(sigParts, secHeader);
+            List<Reference> referenceList = sig.addReferencesToSign(sigParts, secHeader);
 
             //Do signature
             if (bottomUpElement == null) {

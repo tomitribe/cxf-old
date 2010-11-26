@@ -20,9 +20,9 @@
 package org.apache.cxf.ws.security.tokenstore;
 
 import java.security.cert.X509Certificate;
-import java.util.Date;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.util.Date;
 import java.util.Properties;
 
 import org.w3c.dom.Element;

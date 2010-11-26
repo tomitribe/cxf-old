@@ -19,14 +19,13 @@
 
 package org.apache.cxf.ws.security.wss4j.policyhandlers;
 
-
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
-import java.util.logging.Level;
 
+import javax.xml.crypto.dsig.Reference;
 import javax.xml.soap.SOAPMessage;
 
 import org.w3c.dom.Document;
@@ -93,6 +92,7 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
         }
         return sbinding.getSignatureToken();
     }
+    
     private TokenWrapper getEncryptionToken() {
         if (sbinding.getProtectionToken() != null) {
             return sbinding.getProtectionToken();
@@ -117,9 +117,7 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
         //REVIST - what to do with these policies?
         policyAsserted(SP11Constants.TRUST_10);
         policyAsserted(SP12Constants.TRUST_13);
-
     }
-    
     
     private void initializeTokens()  {
         //Setting up encryption token and signature token
@@ -135,13 +133,12 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
         }
     }
     
-    
     private void doEncryptBeforeSign() {
         try {
             TokenWrapper encryptionWrapper = getEncryptionToken();
             Token encryptionToken = encryptionWrapper.getToken();
-            Vector<WSEncryptionPart> encrParts = getEncryptedParts();
-            Vector<WSEncryptionPart> sigParts = getSignedParts();
+            List<WSEncryptionPart> encrParts = getEncryptedParts();
+            List<WSEncryptionPart> sigParts = getSignedParts();
             
             if (encryptionToken == null && encrParts.size() > 0) {
                 //REVISIT - nothing to encrypt?
@@ -149,7 +146,7 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
             
             if (encryptionToken != null && encrParts.size() > 0) {
                 //The encryption token can be an IssuedToken or a 
-                 //SecureConversationToken
+                //SecureConversationToken
                 String tokenId = null;
                 SecurityToken tok = null;
                 if (encryptionToken instanceof IssuedToken) {
@@ -198,7 +195,6 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
                 
                 handleEncryptedSignedHeaders(encrParts, sigParts);
                 
-                
                 if (timestampEl != null) {
                     sigParts.add(new WSEncryptionPart(addWsuIdToElement(timestampEl.getElement())));
                 }
@@ -208,7 +204,6 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
                 } else {
                     addSignatureConfirmation(sigParts);
                 }
-                    
                 
                 //Sign the message
                 //We should use the same key in the case of EncryptBeforeSig
@@ -221,11 +216,10 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
                     this.doEndorse();
                 }
                 
-                
                 //Check for signature protection and encryption of UsernameToken
                 if (sbinding.isSignatureProtection() && this.mainSigId != null 
                     || encryptedTokensIdList.size() > 0 && isRequestor()) {
-                    Vector<WSEncryptionPart> secondEncrParts = new Vector<WSEncryptionPart>();
+                    List<WSEncryptionPart> secondEncrParts = new Vector<WSEncryptionPart>();
                     
                     //Now encrypt the signature using the above token
                     if (sbinding.isSignatureProtection()) {
@@ -246,8 +240,7 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
                         this.addDerivedKeyElement(secondRefList);
                     } else {
                         //Encrypt, get hold of the ref list and add it
-                        secondRefList = ((WSSecEncrypt)encr).encryptForExternalRef(null,
-                                encrParts);
+                        secondRefList = ((WSSecEncrypt)encr).encryptForRef(null, encrParts);
                         this.addDerivedKeyElement(secondRefList);
                     }
                 }
@@ -258,6 +251,7 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
             throw new Fault(ex);
         }
     }
+    
     private void doSignBeforeEncrypt() {
         TokenWrapper sigTokenWrapper = getSignatureToken();
         Token sigToken = sigTokenWrapper.getToken();
@@ -316,8 +310,7 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
                 tokIncluded = false;
             }
         
-        
-            Vector<WSEncryptionPart> sigs = getSignedParts();
+            List<WSEncryptionPart> sigs = getSignedParts();
             //Add timestamp
             if (timestampEl != null) {
                 Element el = timestampEl.getElement();
@@ -339,8 +332,6 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
                 }
             }
 
-            
-            
             //Encryption
             TokenWrapper encrTokenWrapper = getEncryptionToken();
             Token encrToken = encrTokenWrapper.getToken();
@@ -365,7 +356,7 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
                 }
             }
             
-            Vector<WSEncryptionPart> enc = getEncryptedParts();
+            List<WSEncryptionPart> enc = getEncryptedParts();
             
             //Check for signature protection
             if (sbinding.isSignatureProtection() && mainSigId != null) {
@@ -386,11 +377,12 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
             throw new Fault(e);
         }
     }
+    
     private WSSecBase doEncryptionDerived(TokenWrapper recToken,
                                           SecurityToken encrTok,
                                           Token encrToken,
                                           boolean attached,
-                                          Vector<WSEncryptionPart> encrParts,
+                                          List<WSEncryptionPart> encrParts,
                                           boolean atEnd) {
         try {
             WSSecDKEncrypt dkEncr = new WSSecDKEncrypt();
@@ -465,7 +457,7 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
     private WSSecBase doEncryption(TokenWrapper recToken,
                                    SecurityToken encrTok,
                                    boolean attached,
-                                   Vector<WSEncryptionPart> encrParts,
+                                   List<WSEncryptionPart> encrParts,
                                    boolean atEnd) {
         //Do encryption
         if (recToken != null && recToken.getToken() != null && encrParts.size() > 0) {
@@ -531,7 +523,7 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
                     }
                    
                    
-                    Element refList = encr.encryptForExternalRef(null, encrParts);
+                    Element refList = encr.encryptForRef(null, encrParts);
                     if (atEnd) {
                         this.insertBeforeBottomUp(refList);
                     } else {
@@ -546,7 +538,7 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
         return null;
     }    
     
-    private byte[] doSignatureDK(Vector<WSEncryptionPart> sigs,
+    private byte[] doSignatureDK(List<WSEncryptionPart> sigs,
                                TokenWrapper policyTokenWrapper, 
                                Token policyToken, 
                                SecurityToken tok,
@@ -626,7 +618,7 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
         }
         
         dkSign.setParts(sigs);
-        List referenceList = dkSign.addReferencesToSign(sigs, secHeader);
+        List<Reference> referenceList = dkSign.addReferencesToSign(sigs, secHeader);
         
         //Add elements to header
         Element el = dkSign.getdktElement();
@@ -644,7 +636,8 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
 
         return dkSign.getSignatureValue();        
     }
-    private byte[] doSignature(Vector<WSEncryptionPart> sigs,
+    
+    private byte[] doSignature(List<WSEncryptionPart> sigs,
                              TokenWrapper policyTokenWrapper, 
                              Token policyToken, 
                              SecurityToken tok,
@@ -704,10 +697,8 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
             }
             this.message.getExchange().put(SecurityConstants.SIGNATURE_CRYPTO, crypto);
             sig.prepare(saaj.getSOAPPart(), crypto, secHeader);
-            String soap = org.apache.ws.security.util.DOM2Writer.nodeToString(saaj.getSOAPPart());
-            LOG.log(Level.FINE, "SOAP: " + soap);
             sig.setParts(sigs);
-            List referenceList = sig.addReferencesToSign(sigs, secHeader);
+            List<Reference> referenceList = sig.addReferencesToSign(sigs, secHeader);
 
             //Do signature
             if (bottomUpElement == null) {
@@ -754,20 +745,16 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
         return id;
     }
     
+    @SuppressWarnings("unchecked")
     private String getEncryptedKey() {
         
-        List results = (List)message.getExchange().getInMessage()
+        List<WSHandlerResult> results = (List<WSHandlerResult>)message.getExchange().getInMessage()
             .get(WSHandlerConstants.RECV_RESULTS);
         
-        for (int i = 0; i < results.size(); i++) {
-            WSHandlerResult rResult =
-                    (WSHandlerResult) results.get(i);
-
-            List wsSecEngineResults = rResult.getResults();
+        for (WSHandlerResult rResult : results) {
+            List<WSSecurityEngineResult> wsSecEngineResults = rResult.getResults();
             
-            for (int j = 0; j < wsSecEngineResults.size(); j++) {
-                WSSecurityEngineResult wser =
-                        (WSSecurityEngineResult) wsSecEngineResults.get(j);
+            for (WSSecurityEngineResult wser : wsSecEngineResults) {
                 Integer actInt = (Integer)wser.get(WSSecurityEngineResult.TAG_ACTION);
                 if (actInt.intValue() == WSConstants.ENCR
                     && wser.get(WSSecurityEngineResult.TAG_ENCRYPTED_KEY_ID) != null

@@ -82,8 +82,8 @@ import org.apache.ws.security.handler.WSHandlerConstants;
 import org.apache.ws.security.handler.WSHandlerResult;
 import org.apache.ws.security.message.token.SecurityContextToken;
 import org.apache.ws.security.message.token.SecurityTokenReference;
-import org.apache.ws.security.util.XmlSchemaDateFormat;
 import org.apache.ws.security.util.Base64;
+import org.apache.ws.security.util.XmlSchemaDateFormat;
 
 class SecureConversationInInterceptor extends AbstractPhaseInterceptor<SoapMessage> {
     static final Logger LOG = LogUtils.getL7dLogger(SecureConversationInInterceptor.class);

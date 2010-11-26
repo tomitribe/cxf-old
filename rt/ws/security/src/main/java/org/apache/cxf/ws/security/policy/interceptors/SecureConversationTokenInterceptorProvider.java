@@ -66,8 +66,8 @@ import org.apache.ws.security.conversation.ConversationException;
 import org.apache.ws.security.conversation.dkalgo.P_SHA1;
 import org.apache.ws.security.message.token.Reference;
 import org.apache.ws.security.message.token.SecurityTokenReference;
-import org.apache.ws.security.util.WSSecurityUtil;
 import org.apache.ws.security.util.Base64;
+import org.apache.ws.security.util.WSSecurityUtil;
 
 /**
  * 

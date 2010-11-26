@@ -110,6 +110,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         ignoreActions = ignore;
     }
 
+    @SuppressWarnings("unchecked")
     public WSS4JInInterceptor(Map<String, Object> properties) {
         this();
         setProperties(properties);
@@ -191,7 +192,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         try {
             reqData.setMsgContext(msg);
             computeAction(msg, reqData);
-            List actions = new Vector();
+            List<Integer> actions = new Vector<Integer>();
             String action = getAction(msg, version);
 
             int doAction = WSSecurityUtil.decodeAction(action, actions);
@@ -206,7 +207,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
              */
             doReceiverAction(doAction, reqData);
             
-            List wsResult = null;
+            List<WSSecurityEngineResult> wsResult = null;
             if (doTimeLog) {
                 t1 = System.currentTimeMillis();
             }
@@ -235,7 +236,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
             } else { // no security header found
                 // Create an empty result vector to pass into the required validation
                 // methods.
-                wsResult = new Vector<Object>();
+                wsResult = new Vector<WSSecurityEngineResult>();
                 
                 if (doc.getSOAPPart().getEnvelope().getBody().hasFault()) {
                     LOG.warning("Request does not contain Security header, " 
@@ -283,8 +284,12 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         }
     }
 
-    private void checkActions(SoapMessage msg, RequestData reqData, List wsResult, List actions) 
-        throws WSSecurityException {
+    private void checkActions(
+        SoapMessage msg, 
+        RequestData reqData, 
+        List<WSSecurityEngineResult> wsResult, 
+        List<Integer> actions
+    ) throws WSSecurityException {
         /*
          * now check the security actions: do they match, in any order?
          */
@@ -293,6 +298,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
             throw new WSSecurityException(WSSecurityException.INVALID_SECURITY);
         }
     }
+    
     private void checkSignatures(SoapMessage msg, RequestData reqData, List wsResult) 
         throws WSSecurityException {
         /*
