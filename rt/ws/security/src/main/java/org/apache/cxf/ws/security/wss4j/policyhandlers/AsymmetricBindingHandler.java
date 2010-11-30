@@ -34,6 +34,7 @@ import org.w3c.dom.Element;
 
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.common.logging.LogUtils;
+import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.ws.policy.AssertionInfo;
 import org.apache.cxf.ws.policy.AssertionInfoMap;
@@ -412,7 +413,6 @@ public class AsymmetricBindingHandler extends AbstractBindingBuilder {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void setupEncryptedKey(TokenWrapper wrapper, Token token) throws WSSecurityException {
         if (!isRequestor() && token.isDerivedKeys()) {
             //If we already have them, simply return
@@ -421,10 +421,12 @@ public class AsymmetricBindingHandler extends AbstractBindingBuilder {
             }
             
             //Use the secret from the incoming EncryptedKey element
-            Object resultsObj = message.getExchange().getInMessage().get(WSHandlerConstants.RECV_RESULTS);
-            if (resultsObj != null) {
-                encryptedKeyId = getRequestEncryptedKeyId((List<WSHandlerResult>)resultsObj);
-                encryptedKeyValue = getRequestEncryptedKeyValue((List<WSHandlerResult>)resultsObj);
+            List<WSHandlerResult> results = 
+                CastUtils.cast(
+                    (List<?>)message.getExchange().getInMessage().get(WSHandlerConstants.RECV_RESULTS));
+            if (results != null) {
+                encryptedKeyId = getRequestEncryptedKeyId(results);
+                encryptedKeyValue = getRequestEncryptedKeyValue(results);
                 
                 //In the case where we don't have the EncryptedKey in the 
                 //request, for the control to have reached this state,

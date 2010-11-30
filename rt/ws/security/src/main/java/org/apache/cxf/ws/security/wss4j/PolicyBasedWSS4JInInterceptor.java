@@ -454,7 +454,8 @@ public class PolicyBasedWSS4JInInterceptor extends WSS4JInInterceptor {
     }
     
     protected void doResults(SoapMessage msg, String actor, 
-                             SOAPMessage doc, List results, boolean utWithCallbacks) 
+                             SOAPMessage doc, List<WSSecurityEngineResult> results, 
+                             boolean utWithCallbacks) 
         throws SOAPException, XMLStreamException, WSSecurityException {
         
         AssertionInfoMap aim = msg.get(AssertionInfoMap.class);
@@ -464,9 +465,7 @@ public class PolicyBasedWSS4JInInterceptor extends WSS4JInInterceptor {
         boolean hasEndorsement = false;
         Protections prots = Protections.NONE;
         
-        for (int j = 0; j < results.size(); j++) {
-            WSSecurityEngineResult wser =
-                    (WSSecurityEngineResult) results.get(j);
+        for (WSSecurityEngineResult wser : results) {
             Integer actInt = (Integer)wser.get(WSSecurityEngineResult.TAG_ACTION);
             switch (actInt.intValue()) {                    
             case WSConstants.SIGN:

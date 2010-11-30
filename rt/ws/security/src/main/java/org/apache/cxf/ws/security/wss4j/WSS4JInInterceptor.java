@@ -110,12 +110,11 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         ignoreActions = ignore;
     }
 
-    @SuppressWarnings("unchecked")
     public WSS4JInInterceptor(Map<String, Object> properties) {
         this();
         setProperties(properties);
         final Map<QName, Object> map = CastUtils.cast(
-            (Map)properties.get(PROCESSOR_MAP));
+            (Map<?, ?>)properties.get(PROCESSOR_MAP));
         if (map != null) {
             secEngineOverride = createSecurityEngine(map);
         }
@@ -185,6 +184,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         }
 
         RequestData reqData = new RequestData();
+        reqData.setWssConfig(engine.getWssConfig());
         /*
          * The overall try, just to have a finally at the end to perform some
          * housekeeping.
@@ -200,6 +200,11 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
             String actor = (String)getOption(WSHandlerConstants.ACTOR);
 
             CallbackHandler cbHandler = getCallback(reqData, doAction, utWithCallbacks);
+            
+            String passwordTypeStrict = (String)getOption(WSHandlerConstants.PASSWORD_TYPE_STRICT);
+            if (passwordTypeStrict == null) {
+                setProperty(WSHandlerConstants.PASSWORD_TYPE_STRICT, "true");
+            }
 
             /*
              * Get and check the Signature specific parameters first because
@@ -207,12 +212,11 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
              */
             doReceiverAction(doAction, reqData);
             
-            List<WSSecurityEngineResult> wsResult = null;
             if (doTimeLog) {
                 t1 = System.currentTimeMillis();
             }
 
-            wsResult = engine.processSecurityHeader(
+            List<WSSecurityEngineResult> wsResult = engine.processSecurityHeader(
                 doc.getSOAPPart(), 
                 actor, 
                 cbHandler, 
@@ -299,34 +303,23 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         }
     }
     
-    private void checkSignatures(SoapMessage msg, RequestData reqData, List wsResult) 
-        throws WSSecurityException {
-        /*
-         * Now we can check the certificate used to sign the message. In the
-         * following implementation the certificate is only trusted if
-         * either it itself or the certificate of the issuer is installed in
-         * the keystore. Note: the method verifyTrust(X509Certificate)
-         * allows custom implementations with other validation algorithms
-         * for subclasses.
-         */
-
+    private void checkSignatures(
+        SoapMessage msg, RequestData reqData, List<WSSecurityEngineResult> wsResult
+    ) throws WSSecurityException {
         // Extract the signature action result from the action vector
-        List signatureResults = new Vector();
+        List<WSSecurityEngineResult> signatureResults = new Vector<WSSecurityEngineResult>();
         signatureResults = 
             WSSecurityUtil.fetchAllActionResults(wsResult, WSConstants.SIGN, signatureResults);
 
+        // Store the last signature result
         if (!signatureResults.isEmpty()) {
-            for (int i = 0; i < signatureResults.size(); i++) {
-                WSSecurityEngineResult result = 
-                    (WSSecurityEngineResult) signatureResults.get(i);
-                
-                msg.put(SIGNATURE_RESULT, result);
-            }
+            msg.put(SIGNATURE_RESULT, signatureResults.get(signatureResults.size() - 1));
         }
     }
     
-    protected void checkTimestamps(SoapMessage msg, RequestData reqData, List wsResult) 
-        throws WSSecurityException {
+    protected void checkTimestamps(
+        SoapMessage msg, RequestData reqData, List<WSSecurityEngineResult> wsResult
+    ) throws WSSecurityException {
         /*
          * Perform further checks on the timestamp that was transmitted in
          * the header. In the following implementation the timestamp is
@@ -336,14 +329,12 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
          * other validation algorithms for subclasses.
          */
         // Extract the timestamp action result from the action vector
-        List timestampResults = new Vector();
+        List<WSSecurityEngineResult> timestampResults = new Vector<WSSecurityEngineResult>();
         timestampResults = 
             WSSecurityUtil.fetchAllActionResults(wsResult, WSConstants.TS, timestampResults);
 
         if (!timestampResults.isEmpty()) {
-            for (int i = 0; i < timestampResults.size(); i++) {
-                WSSecurityEngineResult result = 
-                    (WSSecurityEngineResult) timestampResults.get(i);
+            for (WSSecurityEngineResult result : timestampResults) {
                 Timestamp timestamp = (Timestamp)result.get(WSSecurityEngineResult.TAG_TIMESTAMP);
 
                 if (timestamp != null && !verifyTimestamp(timestamp, decodeTimeToLive(reqData))) {
@@ -366,20 +357,23 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         
     }
 
-    protected void doResults(SoapMessage msg, String actor, SOAPMessage doc, List wsResult)
-        throws SOAPException, XMLStreamException, WSSecurityException {
+    protected void doResults(
+        SoapMessage msg, String actor, SOAPMessage doc, List<WSSecurityEngineResult> wsResult
+    ) throws SOAPException, XMLStreamException, WSSecurityException {
         doResults(msg, actor, doc, wsResult, false);
     }
 
-    protected void doResults(SoapMessage msg, String actor, SOAPMessage doc, List wsResult, 
-        boolean utWithCallbacks) throws SOAPException, XMLStreamException, WSSecurityException {
+    protected void doResults(
+        SoapMessage msg, String actor, SOAPMessage doc, List<WSSecurityEngineResult> wsResult, 
+        boolean utWithCallbacks
+    ) throws SOAPException, XMLStreamException, WSSecurityException {
         /*
          * All ok up to this point. Now construct and setup the security result
          * structure. The service may fetch this and check it.
          */
-        List<Object> results = CastUtils.cast((List)msg.get(WSHandlerConstants.RECV_RESULTS));
+        List<WSHandlerResult> results = CastUtils.cast((List<?>)msg.get(WSHandlerConstants.RECV_RESULTS));
         if (results == null) {
-            results = new Vector<Object>();
+            results = new Vector<WSHandlerResult>();
             msg.put(WSHandlerConstants.RECV_RESULTS, results);
         }
         WSHandlerResult rResult = new WSHandlerResult(actor, wsResult);
@@ -397,23 +391,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
             i++;
         }
         msg.setContent(XMLStreamReader.class, reader);
-        String pwType = (String)getProperty(msg, "passwordType");
-        if ("PasswordDigest".equals(pwType)) {
-            //CXF-2150 - we need to check the UsernameTokens
-            for (WSSecurityEngineResult o : CastUtils.cast(wsResult, WSSecurityEngineResult.class)) {
-                Integer actInt = (Integer)o.get(WSSecurityEngineResult.TAG_ACTION);
-                if (actInt == WSConstants.UT) {
-                    WSUsernameTokenPrincipal princ 
-                        = (WSUsernameTokenPrincipal)o.get(WSSecurityEngineResult.TAG_PRINCIPAL);
-                    if (!princ.isPasswordDigest()) {
-                        LOG.warning("Non-digest UsernameToken found, but digest required");
-                        throw new WSSecurityException(WSSecurityException.INVALID_SECURITY);
-                    }
-                }
-            }            
-        }
-        
-        for (WSSecurityEngineResult o : CastUtils.cast(wsResult, WSSecurityEngineResult.class)) {
+        for (WSSecurityEngineResult o : wsResult) {
             final Principal p = (Principal)o.get(WSSecurityEngineResult.TAG_PRINCIPAL);
             if (p != null) {
                 msg.put(PRINCIPAL_RESULT, p);
@@ -568,9 +546,6 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
      *              construction); otherwise, it is taken to be the default
      *              WSSecEngine instance (currently defined in the WSHandler
      *              base class).
-     *
-     * TODO the WSHandler base class defines secEngine to be static, which
-     * is really bad, because the engine has mutable state on it.
      */
     protected WSSecurityEngine getSecurityEngine(boolean utWithCallbacks) {
         if (secEngineOverride != null) {
@@ -592,11 +567,8 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
      * @return      a freshly minted WSSecurityEngine instance, using the
      *              (non-null) processor map, to be used to initialize the
      *              WSSecurityEngine instance.
-     *
-     * TODO The WSS4J APIs leave something to be desired here, but hopefully
-     * we'll clean all this up in WSS4J-2.0
      */
-    protected static WSSecurityEngine
+    protected WSSecurityEngine
     createSecurityEngine(
         final Map<QName, Object> map
     ) {

@@ -33,6 +33,7 @@ import org.w3c.dom.Element;
 
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.common.util.StringUtils;
+import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.ws.policy.AssertionInfoMap;
 import org.apache.cxf.ws.security.SecurityConstants;
@@ -745,11 +746,10 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
         return id;
     }
     
-    @SuppressWarnings("unchecked")
     private String getEncryptedKey() {
         
-        List<WSHandlerResult> results = (List<WSHandlerResult>)message.getExchange().getInMessage()
-            .get(WSHandlerConstants.RECV_RESULTS);
+        List<WSHandlerResult> results = CastUtils.cast((List<?>)message.getExchange().getInMessage()
+            .get(WSHandlerConstants.RECV_RESULTS));
         
         for (WSHandlerResult rResult : results) {
             List<WSSecurityEngineResult> wsSecEngineResults = rResult.getResults();

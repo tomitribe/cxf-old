@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.endpoint.Endpoint;
+import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.AbstractPhaseInterceptor;
@@ -199,7 +200,6 @@ public class IssuedTokenInterceptorProvider extends AbstractPolicyInterceptorPro
             addAfter(PolicyBasedWSS4JInInterceptor.class.getName());
         }
 
-        @SuppressWarnings("unchecked")
         public void handleMessage(Message message) throws Fault {
             AssertionInfoMap aim = message.get(AssertionInfoMap.class);
             // extract Assertion information
@@ -211,7 +211,7 @@ public class IssuedTokenInterceptorProvider extends AbstractPolicyInterceptorPro
                 if (!isRequestor(message)) {
                     boolean found = false;
                     List<WSHandlerResult> results = 
-                        (List<WSHandlerResult>)message.get(WSHandlerConstants.RECV_RESULTS);
+                        CastUtils.cast((List<?>)message.get(WSHandlerConstants.RECV_RESULTS));
                     if (results != null) {
                         for (WSHandlerResult rResult : results) {
                             List<WSSecurityEngineResult> wsSecEngineResults = 

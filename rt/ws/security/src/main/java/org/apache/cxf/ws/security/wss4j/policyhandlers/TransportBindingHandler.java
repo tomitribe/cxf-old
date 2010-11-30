@@ -338,9 +338,9 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
             if (secTok.getX509Certificate() != null
                 || securityTok != null) {
                 //the "getX509Certificate" this is to workaround an issue in WCF
-                //In WCF, for TransportBinding, in most cases, it doesn't wan't any of
-                //the headers signed even if the policy sais so.   HOWEVER, for KeyValue
-                //IssuedTokends, it DOES want them signed
+                //In WCF, for TransportBinding, in most cases, it doesn't want any of
+                //the headers signed even if the policy says so.   HOWEVER, for KeyValue
+                //IssuedTokens, it DOES want them signed
                 for (Header header : signdParts.getHeaders()) {
                     WSEncryptionPart wep = new WSEncryptionPart(header.getName(), 
                             header.getNamespace(),

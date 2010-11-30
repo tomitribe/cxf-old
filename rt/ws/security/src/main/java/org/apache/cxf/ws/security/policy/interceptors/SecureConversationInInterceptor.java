@@ -35,6 +35,7 @@ import org.apache.cxf.binding.soap.SoapBindingConstants;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.endpoint.Endpoint;
+import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.interceptor.Interceptor;
@@ -445,12 +446,11 @@ class SecureConversationInInterceptor extends AbstractPhaseInterceptor<SoapMessa
             addAfter(WSS4JInInterceptor.class.getName());
         }
 
-        @SuppressWarnings("unchecked")
         public void handleMessage(SoapMessage message) throws Fault {
             //Find the SC token
             boolean found = false;
             List<WSHandlerResult> results = 
-                (List<WSHandlerResult>)message.get(WSHandlerConstants.RECV_RESULTS);
+                CastUtils.cast((List<?>)message.get(WSHandlerConstants.RECV_RESULTS));
             if (results != null) {
                 for (WSHandlerResult rResult : results) {
                     List<WSSecurityEngineResult> wsSecEngineResults = rResult.getResults();

@@ -128,12 +128,12 @@ public class UsernameTokenInterceptor extends AbstractSoapInterceptor {
                 try  {
                     final WSUsernameTokenPrincipal princ = getPrincipal(child, message);
                     if (princ != null) {
-                        Vector<WSSecurityEngineResult>v = new Vector<WSSecurityEngineResult>();
+                        List<WSSecurityEngineResult>v = new Vector<WSSecurityEngineResult>();
                         v.add(0, new WSSecurityEngineResult(WSConstants.UT, princ, null, null, null));
-                        List<Object> results = CastUtils.cast((List)message
+                        List<WSHandlerResult> results = CastUtils.cast((List<?>)message
                                                                   .get(WSHandlerConstants.RECV_RESULTS));
                         if (results == null) {
-                            results = new Vector<Object>();
+                            results = new Vector<WSHandlerResult>();
                             message.put(WSHandlerConstants.RECV_RESULTS, results);
                         }
                         WSHandlerResult rResult = new WSHandlerResult(null, v);

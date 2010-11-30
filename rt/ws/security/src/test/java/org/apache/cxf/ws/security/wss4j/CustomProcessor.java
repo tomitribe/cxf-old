@@ -32,7 +32,6 @@ import org.apache.ws.security.processor.Processor;
  */
 public class CustomProcessor implements Processor {
     
-    @SuppressWarnings("unchecked")
     public final void 
     handleToken(
         final org.w3c.dom.Element elem, 
@@ -40,10 +39,10 @@ public class CustomProcessor implements Processor {
         final Crypto decCrypto,
         final javax.security.auth.callback.CallbackHandler cb, 
         final WSDocInfo wsDocInfo, 
-        final java.util.List returnResults,
+        final java.util.List<WSSecurityEngineResult> returnResults,
         final WSSConfig config
     ) throws WSSecurityException {
-        final java.util.Map result = 
+        final WSSecurityEngineResult result = 
             new WSSecurityEngineResult(
                 WSConstants.SIGN, 
                 (SecurityContextToken) null

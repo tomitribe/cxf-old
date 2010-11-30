@@ -362,20 +362,20 @@ public abstract class AbstractBindingBuilder {
         Collection<AssertionInfo> ais;
         ais = aim.get(SP12Constants.INCLUDE_TIMESTAMP);
         if (ais != null) {
+            Object o = message.getContextualProperty(SecurityConstants.TIMESTAMP_TTL);
+            int ttl = 300;  //default is 300 seconds
+            if (o instanceof Number) {
+                ttl = ((Number)o).intValue();
+            } else if (o instanceof String) {
+                ttl = Integer.parseInt((String)o);
+            }
+            if (ttl <= 0) {
+                ttl = 300;
+            }
+            timestampEl = new WSSecTimestamp();
+            timestampEl.setTimeToLive(ttl);
+            timestampEl.prepare(saaj.getSOAPPart());
             for (AssertionInfo ai : ais) {
-                timestampEl = new WSSecTimestamp();
-                Object o = message.getContextualProperty(SecurityConstants.TIMESTAMP_TTL);
-                int ttl = 300;  //default is 300 seconds
-                if (o instanceof Number) {
-                    ttl = ((Number)o).intValue();
-                } else if (o instanceof String) {
-                    ttl = Integer.parseInt((String)o);
-                }
-                if (ttl <= 0) {
-                    ttl = 300;
-                }
-                timestampEl.setTimeToLive(ttl);
-                timestampEl.prepare(saaj.getSOAPPart());
                 ai.setAsserted(true);
             }                    
         }
@@ -1162,31 +1162,13 @@ public abstract class AbstractBindingBuilder {
         }
     }
     
-    @SuppressWarnings("unchecked")
     public void setEncryptionUser(WSSecEncryptedKey encrKeyBuilder, TokenWrapper token,
                                   boolean sign, Crypto crypto) {
         String encrUser = (String)message.getContextualProperty(sign 
                                                                 ? SecurityConstants.SIGNATURE_USERNAME
                                                                 : SecurityConstants.ENCRYPT_USERNAME);
-        if (crypto != null) {
-            if (encrUser == null) {
-                encrUser = crypto.getDefaultX509Alias();
-            }
-            if (encrUser == null) {
-                try {
-                    Enumeration<String> en = crypto.getKeyStore().aliases();
-                    if (en.hasMoreElements()) {
-                        encrUser = en.nextElement();
-                    }
-                    if (en.hasMoreElements()) {
-                        //more than one alias in the keystore, user WILL need
-                        //to specify
-                        encrUser = null;
-                    }            
-                } catch (KeyStoreException e) {
-                    //ignore
-                }
-            }
+        if (crypto != null && encrUser == null) {
+            encrUser = getDefaultCryptoAlias(crypto);
         } else if (encrUser == null || "".equals(encrUser)) {
             policyNotAsserted(token, "No " + (sign ? "signature" : "encryption") + " crypto object found.");
         }
@@ -1194,13 +1176,15 @@ public abstract class AbstractBindingBuilder {
             policyNotAsserted(token, "No " + (sign ? "signature" : "encryption") + " username found.");
         }
         if (WSHandlerConstants.USE_REQ_SIG_CERT.equals(encrUser)) {
-            Object resultsObj = message.getExchange().getInMessage().get(WSHandlerConstants.RECV_RESULTS);
-            if (resultsObj != null) {
-                encrKeyBuilder.setUseThisCert(getReqSigCert((List<WSHandlerResult>)resultsObj));
+            List<WSHandlerResult> results = 
+                CastUtils.cast((List<?>)
+                    message.getExchange().getInMessage().get(WSHandlerConstants.RECV_RESULTS));
+            if (results != null) {
+                encrKeyBuilder.setUseThisCert(getReqSigCert(results));
                  
                 //TODO This is a hack, this should not come under USE_REQ_SIG_CERT
                 if (encrKeyBuilder.isCertSet()) {
-                    encrKeyBuilder.setUserInfo(getUsername((List<WSHandlerResult>)resultsObj));
+                    encrKeyBuilder.setUserInfo(getUsername(results));
                 }
             } else {
                 policyNotAsserted(token, "No security results in incoming message");
@@ -1208,6 +1192,26 @@ public abstract class AbstractBindingBuilder {
         } else {
             encrKeyBuilder.setUserInfo(encrUser);
         }
+    }
+    
+    protected String getDefaultCryptoAlias(Crypto crypto) {
+        String user = crypto.getDefaultX509Alias();
+        if (user == null) {
+            try {
+                Enumeration<String> en = crypto.getKeyStore().aliases();
+                if (en.hasMoreElements()) {
+                    user = en.nextElement();
+                }
+                if (en.hasMoreElements()) {
+                    //more than one alias in the keystore, user WILL need
+                    //to specify
+                    user = null;
+                }            
+            } catch (KeyStoreException e) {
+                //ignore
+            }
+        }
+        return user;
     }
     
     private static X509Certificate getReqSigCert(List<WSHandlerResult> results) {
@@ -1314,25 +1318,8 @@ public abstract class AbstractBindingBuilder {
             message.getExchange().put(SecurityConstants.SIGNATURE_CRYPTO, crypto);
         }
         String user = (String)message.getContextualProperty(userNameKey);
-        if (crypto != null) {
-            if (StringUtils.isEmpty(user)) {
-                user = crypto.getDefaultX509Alias();
-            }
-            if (user == null) {
-                try {
-                    Enumeration<String> en = crypto.getKeyStore().aliases();
-                    if (en.hasMoreElements()) {
-                        user = en.nextElement();
-                    }
-                    if (en.hasMoreElements()) {
-                        //more than one alias in the keystore, user WILL need
-                        //to specify
-                        user = null;
-                    }            
-                } catch (KeyStoreException e) {
-                    //ignore
-                }
-            }
+        if (crypto != null && StringUtils.isEmpty(user)) {
+            user = getDefaultCryptoAlias(crypto);
         }
         if (StringUtils.isEmpty(user)) {
             policyNotAsserted(token, "No " + type + " username found.");
@@ -1619,7 +1606,6 @@ public abstract class AbstractBindingBuilder {
         doEndorsedSignatures(sgndEndSuppTokMap, tokenProtect, sigProtect);
     } 
 
-    @SuppressWarnings("unchecked")
     protected void addSignatureConfirmation(List<WSEncryptionPart> sigParts) {
         Wss10 wss10 = getWss10();
         
@@ -1630,7 +1616,8 @@ public abstract class AbstractBindingBuilder {
         }
         
         List<WSHandlerResult> results = 
-            (List<WSHandlerResult>)message.getExchange().getInMessage().get(WSHandlerConstants.RECV_RESULTS);
+            CastUtils.cast((List<?>)
+                message.getExchange().getInMessage().get(WSHandlerConstants.RECV_RESULTS));
         /*
          * loop over all results gathered by all handlers in the chain. For each
          * handler result get the various actions. After that loop we have all

@@ -52,14 +52,14 @@ public class UsernameTokenProcessorWithoutCallbacks implements Processor {
     private String utId;
     private UsernameToken ut;
     
-    @SuppressWarnings("unchecked")
     public void handleToken(Element elem, Crypto crypto, Crypto decCrypto, CallbackHandler cb, 
-        WSDocInfo wsDocInfo, List returnResults, WSSConfig wsc) throws WSSecurityException {
+        WSDocInfo wsDocInfo, List<WSSecurityEngineResult> returnResults, WSSConfig wsc
+    ) throws WSSecurityException {
         if (LOG.isLoggable(Level.FINE)) {
             LOG.fine("Found UsernameToken list element");
         }
         
-        Principal principal = handleUsernameToken((Element) elem, cb);
+        Principal principal = handleUsernameToken(elem, cb);
         returnResults.add(
             0, 
             new WSSecurityEngineResult(WSConstants.UT, principal, null, null, null)
