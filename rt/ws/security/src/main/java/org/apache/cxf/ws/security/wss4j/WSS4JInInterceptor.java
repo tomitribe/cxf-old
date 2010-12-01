@@ -568,7 +568,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
      *              (non-null) processor map, to be used to initialize the
      *              WSSecurityEngine instance.
      */
-    protected WSSecurityEngine
+    protected static WSSecurityEngine
     createSecurityEngine(
         final Map<QName, Object> map
     ) {
