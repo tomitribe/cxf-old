@@ -19,8 +19,6 @@
 
 package org.apache.cxf.ws.security.wss4j.policyhandlers;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
@@ -68,6 +66,7 @@ import org.apache.ws.security.message.WSSecSignature;
 import org.apache.ws.security.message.WSSecTimestamp;
 import org.apache.ws.security.message.token.SecurityTokenReference;
 import org.apache.ws.security.util.Base64;
+import org.apache.ws.security.util.WSSecurityUtil;
 
 /**
  * 
@@ -779,14 +778,10 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
     }
     
     private String getSHA1(byte[] input) {
-        MessageDigest sha;
         try {
-            sha = MessageDigest.getInstance("SHA-1");
-            sha.reset();
-            sha.update(input);
-            byte[] data = sha.digest();
-            return Base64.encode(data);
-        } catch (NoSuchAlgorithmException e) {
+            byte[] digestBytes = WSSecurityUtil.generateDigest(input);
+            return Base64.encode(digestBytes);
+        } catch (WSSecurityException e) {
             //REVISIT
         }
         return null;

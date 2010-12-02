@@ -20,7 +20,6 @@
 package org.apache.cxf.ws.security.policy.interceptors;
 
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -242,9 +241,7 @@ public class SecureConversationTokenInterceptorProvider extends AbstractPolicyIn
         byte secret[] = null; 
         writer.writeStartElement(prefix, "RequestedProofToken", namespace);
         if (clientEntropy == null) {
-            SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
-            secret = new byte[keySize / 8];
-            random.nextBytes(secret);
+            secret = WSSecurityUtil.generateNonce(keySize / 8);
             
             writer.writeStartElement(prefix, "BinarySecret", namespace);
             writer.writeAttribute("Type", namespace + "/Nonce");
