@@ -94,16 +94,8 @@
             <version>1.6-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
-                    <groupId>axis</groupId>
-                    <artifactId>axis</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>opensaml</groupId>
                     <artifactId>opensaml</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>axis</groupId>
-                    <artifactId>axis-ant</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>xerces</groupId>
