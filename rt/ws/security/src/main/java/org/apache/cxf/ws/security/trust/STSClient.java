@@ -101,7 +101,6 @@ import org.apache.neethi.ExactlyOne;
 import org.apache.neethi.Policy;
 import org.apache.neethi.PolicyComponent;
 import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.WSSConfig;
 import org.apache.ws.security.WSSecurityEngineResult;
 import org.apache.ws.security.WSSecurityException;
 import org.apache.ws.security.components.crypto.Crypto;
@@ -315,7 +314,7 @@ public class STSClient implements Configurable, InterceptorProvider {
         if (algorithmSuite == null) {
             Iterator<?> i = policy.getAlternatives();
             while (i.hasNext() && algorithmSuite == null) {
-                List<PolicyComponent> p = CastUtils.cast((List)i.next());
+                List<PolicyComponent> p = CastUtils.cast((List<?>)i.next());
                 for (PolicyComponent p2 : p) {
                     if (p2 instanceof Binding) {
                         algorithmSuite = ((Binding)p2).getAlgorithmSuite();
@@ -956,7 +955,6 @@ public class STSClient implements Configurable, InterceptorProvider {
     }
 
     private Crypto createCrypto(boolean decrypt) throws IOException {
-        WSSConfig.getDefaultWSConfig();
         Crypto crypto = (Crypto)getProperty(SecurityConstants.STS_TOKEN_CRYPTO + (decrypt ? ".decrypt" : ""));
         if (crypto != null) {
             return crypto;
