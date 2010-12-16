@@ -19,9 +19,9 @@
 
 package org.apache.cxf.ws.security.wss4j.policyhandlers;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Vector;
 
 import javax.xml.crypto.dsig.Reference;
 import javax.xml.soap.SOAPMessage;
@@ -196,7 +196,9 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
                 handleEncryptedSignedHeaders(encrParts, sigParts);
                 
                 if (timestampEl != null) {
-                    sigParts.add(new WSEncryptionPart(addWsuIdToElement(timestampEl.getElement())));
+                    WSEncryptionPart timestampPart = 
+                        convertToEncryptionPart(timestampEl.getElement());
+                    sigParts.add(timestampPart);        
                 }
                 
                 if (isRequestor()) {
@@ -219,11 +221,14 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
                 //Check for signature protection and encryption of UsernameToken
                 if (sbinding.isSignatureProtection() && this.mainSigId != null 
                     || encryptedTokensIdList.size() > 0 && isRequestor()) {
-                    List<WSEncryptionPart> secondEncrParts = new Vector<WSEncryptionPart>();
+                    List<WSEncryptionPart> secondEncrParts = new ArrayList<WSEncryptionPart>();
                     
                     //Now encrypt the signature using the above token
                     if (sbinding.isSignatureProtection()) {
-                        secondEncrParts.add(new WSEncryptionPart(this.mainSigId, "Element"));
+                        WSEncryptionPart sigPart = 
+                            new WSEncryptionPart(this.mainSigId, "Element");
+                        sigPart.setElement(bottomUpElement);
+                        secondEncrParts.add(sigPart);
                     }
                     
                     if (isRequestor()) {
@@ -313,8 +318,8 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
             List<WSEncryptionPart> sigs = getSignedParts();
             //Add timestamp
             if (timestampEl != null) {
-                Element el = timestampEl.getElement();
-                sigs.add(new WSEncryptionPart(addWsuIdToElement(el)));
+                WSEncryptionPart timestampPart = convertToEncryptionPart(timestampEl.getElement());
+                sigs.add(timestampPart);        
             }
 
             if (isRequestor()) {
@@ -360,7 +365,9 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
             
             //Check for signature protection
             if (sbinding.isSignatureProtection() && mainSigId != null) {
-                enc.add(new WSEncryptionPart(mainSigId, "Element"));
+                WSEncryptionPart sigPart = new WSEncryptionPart(mainSigId, "Element");
+                sigPart.setElement(bottomUpElement);
+                enc.add(sigPart);
             }
             
             if (isRequestor()) {

@@ -19,9 +19,9 @@
 
 package org.apache.cxf.ws.security.wss4j.policyhandlers;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Vector;
 
 import javax.xml.crypto.dsig.Reference;
 import javax.xml.soap.SOAPMessage;
@@ -118,7 +118,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
         
         try {
             if (this.isRequestor()) {
-                List<byte[]> signatureValues = new Vector<byte[]>();
+                List<byte[]> signatureValues = new ArrayList<byte[]>();
 
                 ais = aim.get(SP12Constants.SIGNED_SUPPORTING_TOKENS);
                 if (ais != null) {
@@ -217,23 +217,25 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
     }
     
 
-    private byte[] doX509TokenSignature(Token token, SignedEncryptedParts signdParts,
+    private byte[] doX509TokenSignature(Token token, SignedEncryptedParts signedParts,
                                         TokenWrapper wrapper) 
         throws Exception {
         
         Document doc = saaj.getSOAPPart();
         
-        List<WSEncryptionPart> sigParts = new Vector<WSEncryptionPart>();
+        List<WSEncryptionPart> sigParts = new ArrayList<WSEncryptionPart>();
         
         if (timestampEl != null) {
-            sigParts.add(new WSEncryptionPart(timestampEl.getId()));                          
+            WSEncryptionPart timestampPart = convertToEncryptionPart(timestampEl.getElement());
+            sigParts.add(timestampPart);                          
         }
         
-        if (signdParts != null) {
-            if (signdParts.isBody()) {
-                sigParts.add(new WSEncryptionPart(addWsuIdToElement(saaj.getSOAPBody())));
+        if (signedParts != null) {
+            if (signedParts.isBody()) {
+                WSEncryptionPart bodyPart = convertToEncryptionPart(saaj.getSOAPBody());
+                sigParts.add(bodyPart);
             }
-            for (Header header : signdParts.getHeaders()) {
+            for (Header header : signedParts.getHeaders()) {
                 WSEncryptionPart wep = new WSEncryptionPart(header.getName(), 
                         header.getNamespace(),
                         "Content");
@@ -286,6 +288,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
                     sig.computeSignature(referenceList, true, bottomUpElement);
                 }
                 bottomUpElement = sig.getSignatureElement();
+                mainSigId = sig.getId();
             
                 return sig.getSignatureValue();
             } else {
@@ -309,7 +312,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
         SPConstants.IncludeTokenType inclusion = token.getInclusion();
         boolean tokenIncluded = false;
         
-        List<WSEncryptionPart> sigParts = new Vector<WSEncryptionPart>();
+        List<WSEncryptionPart> sigParts = new ArrayList<WSEncryptionPart>();
         if (inclusion == SPConstants.IncludeTokenType.INCLUDE_TOKEN_ALWAYS
             || ((inclusion == SPConstants.IncludeTokenType.INCLUDE_TOKEN_ALWAYS_TO_RECIPIENT 
                 || inclusion == SPConstants.IncludeTokenType.INCLUDE_TOKEN_ONCE) 
@@ -328,12 +331,14 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
         }
         
         if (timestampEl != null) {
-            sigParts.add(new WSEncryptionPart(timestampEl.getId()));                          
+            WSEncryptionPart timestampPart = convertToEncryptionPart(timestampEl.getElement());
+            sigParts.add(timestampPart);                          
         }
         
         if (signdParts != null) {
             if (signdParts.isBody()) {
-                sigParts.add(new WSEncryptionPart(addWsuIdToElement(saaj.getSOAPBody())));
+                WSEncryptionPart bodyPart = convertToEncryptionPart(saaj.getSOAPBody());
+                sigParts.add(bodyPart);
             }
             if (secTok.getX509Certificate() != null
                 || securityTok != null) {
@@ -438,6 +443,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
                 sig.computeSignature(referenceList, true, bottomUpElement);
             }
             bottomUpElement = sig.getSignatureElement();
+            mainSigId = sig.getId();
         
             return sig.getSignatureValue();
         }

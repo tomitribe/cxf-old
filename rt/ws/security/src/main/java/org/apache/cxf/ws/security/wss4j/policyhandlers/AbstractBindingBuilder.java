@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -147,7 +146,7 @@ public abstract class AbstractBindingBuilder {
     protected Map<Token, WSSecBase> sgndEndEncSuppTokMap;
     protected Map<Token, WSSecBase> sgndEndSuppTokMap;
     
-    protected List<byte[]> signatures = new Vector<byte[]>();
+    protected List<byte[]> signatures = new ArrayList<byte[]>();
 
     Element lastSupportingTokenElement;
     Element lastEncryptedKeyElement;
@@ -579,18 +578,22 @@ public abstract class AbstractBindingBuilder {
                 if ((WSConstants.WSS_SAML_NS + WSConstants.SAML_ASSERTION_ID).
                     equals(secRef.getKeyIdentifierValueType())) {
                     
-                    addSupportingElement(cloneElement(secRef.getElement()));
+                    Element secRefElement = cloneElement(secRef.getElement());
+                    addSupportingElement(secRefElement);
                                
                     part = new WSEncryptionPart("STRTransform", null, "Element");
                     part.setId(tempSig.getSecurityTokenReferenceURI());
+                    part.setElement(secRefElement);
                 } else {
                     if (tempSig.getBSTTokenId() != null) {
                         part = new WSEncryptionPart(tempSig.getBSTTokenId());
+                        part.setElement(tempSig.getBinarySecurityTokenElement());
                     }
                 }
             } else if (tempTok instanceof WSSecUsernameToken) {
                 WSSecUsernameToken unt = (WSSecUsernameToken)tempTok;
                 part = new WSEncryptionPart(unt.getId());
+                part.setElement(unt.getUsernameTokenElement());
             } else {
                 policyNotAsserted(entry.getKey(), "UnsupportedTokenInSupportingToken: " + tempTok);  
             }
@@ -773,7 +776,7 @@ public abstract class AbstractBindingBuilder {
         // REVISIT consider catching exceptions and unassert failed assertions or
         // to process and assert them one at a time.  Additionally, a found list
         // should be applied to all operations that involve adding anything to
-        // the encrypted vector to prevent duplication / errors in encryption.
+        // the encrypted list to prevent duplication / errors in encryption.
         return getPartsAndElements(false, 
                                    isBody,
                                    signedParts,
@@ -820,7 +823,7 @@ public abstract class AbstractBindingBuilder {
         // REVISIT consider catching exceptions and unassert failed assertions or
         // to process and assert them one at a time.  Additionally, a found list
         // should be applied to all operations that involve adding anything to
-        // the signed vector to prevent duplication in the signature.
+        // the signed list to prevent duplication in the signature.
         return getPartsAndElements(true, 
                                    isSignBody,
                                    signedParts,
@@ -869,7 +872,7 @@ public abstract class AbstractBindingBuilder {
                                                     Map<String, String> cnamespaces) 
         throws SOAPException {
         
-        List<WSEncryptionPart> result = new Vector<WSEncryptionPart>();
+        List<WSEncryptionPart> result = new ArrayList<WSEncryptionPart>();
         
         List<Element> found = new ArrayList<Element>();
         
@@ -921,15 +924,19 @@ public abstract class AbstractBindingBuilder {
             boolean includeBody, List<WSEncryptionPart> parts,
             List<Element> found) throws SOAPException {
         
-        List<WSEncryptionPart> result = new Vector<WSEncryptionPart>();
+        List<WSEncryptionPart> result = new ArrayList<WSEncryptionPart>();
         
         if (includeBody && !found.contains(this.saaj.getSOAPBody())) {
             found.add(saaj.getSOAPBody());
             final String id = this.addWsuIdToElement(this.saaj.getSOAPBody());
             if (sign) {
-                result.add(new WSEncryptionPart(id, "Element"));
+                WSEncryptionPart bodyPart = new WSEncryptionPart(id, "Element");
+                bodyPart.setElement(this.saaj.getSOAPBody());
+                result.add(bodyPart);
             } else {
-                result.add(new WSEncryptionPart(id, "Content"));
+                WSEncryptionPart bodyPart = new WSEncryptionPart(id, "Content");
+                bodyPart.setElement(this.saaj.getSOAPBody());
+                result.add(bodyPart);
             }
         }
         
@@ -954,10 +961,13 @@ public abstract class AbstractBindingBuilder {
                     found.add(el);
                     // Generate an ID for the element and use this ID or else
                     // WSS4J will only ever sign/encrypt the first matching
-                    // elemenet with the same name and namespace as that in the
+                    // element with the same name and namespace as that in the
                     // WSEncryptionPart
                     final String id = this.addWsuIdToElement(el);
-                    result.add(new WSEncryptionPart(id, part.getEncModifier()));
+                    WSEncryptionPart elPart = 
+                        new WSEncryptionPart(id, part.getEncModifier());
+                    elPart.setElement(el);
+                    result.add(elPart);
                 }
             }
         }
@@ -993,7 +1003,7 @@ public abstract class AbstractBindingBuilder {
             List<String> xpaths, Map<String, String> namespaces,
             List<Element> found) throws XPathExpressionException, SOAPException {
         
-        List<WSEncryptionPart> result = new Vector<WSEncryptionPart>();
+        List<WSEncryptionPart> result = new ArrayList<WSEncryptionPart>();
         
         if (xpaths != null && !xpaths.isEmpty()) {
             XPathFactory factory = XPathFactory.newInstance();
@@ -1018,6 +1028,7 @@ public abstract class AbstractBindingBuilder {
                         WSEncryptionPart part = new WSEncryptionPart(
                                 id, 
                                 encryptionModifier);
+                        part.setElement(el);
                         part.setXpath(expression);
                         
                         /**
@@ -1238,7 +1249,7 @@ public abstract class AbstractBindingBuilder {
     }
     
     /**
-     * Scan through <code>WSHandlerResult<code> vector for a Username token and return
+     * Scan through <code>WSHandlerResult<code> list for a Username token and return
      * the username if a Username Token found 
      * @param results
      * @return
@@ -1351,13 +1362,18 @@ public abstract class AbstractBindingBuilder {
         for (Map.Entry<Token, WSSecBase> ent : tokenMap.entrySet()) {
             WSSecBase tempTok = ent.getValue();
             
-            List<WSEncryptionPart> sigParts = new Vector<WSEncryptionPart>();
-            sigParts.add(new WSEncryptionPart(mainSigId));
+            List<WSEncryptionPart> sigParts = new ArrayList<WSEncryptionPart>();
+            WSEncryptionPart sigPart = new WSEncryptionPart(mainSigId);
+            sigPart.setElement(bottomUpElement);
+            sigParts.add(sigPart);
             
             if (tempTok instanceof WSSecSignature) {
                 WSSecSignature sig = (WSSecSignature)tempTok;
                 if (isTokenProtection && sig.getBSTTokenId() != null) {
-                    sigParts.add(new WSEncryptionPart(sig.getBSTTokenId()));
+                    WSEncryptionPart bstPart = 
+                        new WSEncryptionPart(sig.getBSTTokenId());
+                    bstPart.setElement(sig.getBinarySecurityTokenElement());
+                    sigParts.add(bstPart);
                 }
                 try {
                     List<Reference> referenceList = sig.addReferencesToSign(sigParts, secHeader);
@@ -1621,9 +1637,9 @@ public abstract class AbstractBindingBuilder {
         /*
          * loop over all results gathered by all handlers in the chain. For each
          * handler result get the various actions. After that loop we have all
-         * signature results in the signatureActions vector
+         * signature results in the signatureActions list
          */
-        List<WSSecurityEngineResult> signatureActions = new Vector<WSSecurityEngineResult>();
+        List<WSSecurityEngineResult> signatureActions = new ArrayList<WSSecurityEngineResult>();
         for (WSHandlerResult wshResult : results) {
             WSSecurityUtil.fetchAllActionResults(wshResult.getResults(),
                     WSConstants.SIGN, signatureActions);
@@ -1673,7 +1689,7 @@ public abstract class AbstractBindingBuilder {
     public void handleEncryptedSignedHeaders(List<WSEncryptionPart> encryptedParts, 
             List<WSEncryptionPart> signedParts) {
 
-        final List<WSEncryptionPart> signedEncryptedParts = new Vector<WSEncryptionPart>();
+        final List<WSEncryptionPart> signedEncryptedParts = new ArrayList<WSEncryptionPart>();
         
         for (WSEncryptionPart encryptedPart : encryptedParts) {
             final Iterator<WSEncryptionPart> signedPartsIt = signedParts.iterator();
@@ -1695,15 +1711,30 @@ public abstract class AbstractBindingBuilder {
                     // change the ID to the encrypted ID.
                     
                     signedPartsIt.remove();
-                    signedEncryptedParts.add(
-                            new WSEncryptionPart(
-                                    encryptedPart.getEncId(),
-                                    encryptedPart.getEncModifier()));
+                    WSEncryptionPart part = new WSEncryptionPart(
+                            encryptedPart.getEncId(),
+                            encryptedPart.getEncModifier());
+                    part.setElement(encryptedPart.getElement());
+                    signedEncryptedParts.add(part);
                 }
             }
         }
         
         signedParts.addAll(signedEncryptedParts);
     }
+ 
+    /**
+     * Convert a DOM Element into a WSEncryptionPart, adding a (wsu:)Id if there is not
+     * one already.
+     * @param element The DOM Element to convert
+     * @return The WSEncryptionPart representing the DOM Element argument
+     */
+    public WSEncryptionPart convertToEncryptionPart(Element element) {
+        String id = addWsuIdToElement(element);
+        WSEncryptionPart part = new WSEncryptionPart(id);
+        part.setElement(element);
+        return part;
+    }
+    
     
 }
