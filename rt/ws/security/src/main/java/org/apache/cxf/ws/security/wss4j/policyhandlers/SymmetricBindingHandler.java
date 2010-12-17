@@ -762,12 +762,10 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
             
             for (WSSecurityEngineResult wser : wsSecEngineResults) {
                 Integer actInt = (Integer)wser.get(WSSecurityEngineResult.TAG_ACTION);
+                String encryptedKeyID = (String)wser.get(WSSecurityEngineResult.TAG_ID);
                 if (actInt.intValue() == WSConstants.ENCR
-                    && wser.get(WSSecurityEngineResult.TAG_ENCRYPTED_KEY_ID) != null
-                    && ((String)wser.get(WSSecurityEngineResult.TAG_ENCRYPTED_KEY_ID)).length() != 0) {
-                        
-                    String encryptedKeyID = (String)wser.get(WSSecurityEngineResult.TAG_ENCRYPTED_KEY_ID);
-
+                    && encryptedKeyID != null
+                    && encryptedKeyID.length() != 0) {
                     Date created = new Date();
                     Date expires = new Date();
                     expires.setTime(created.getTime() + 300000);

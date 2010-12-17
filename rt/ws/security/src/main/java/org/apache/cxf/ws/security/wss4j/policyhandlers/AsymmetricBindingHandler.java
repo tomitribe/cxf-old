@@ -467,7 +467,7 @@ public class AsymmetricBindingHandler extends AbstractBindingBuilder {
              */
             for (WSSecurityEngineResult wser : wsSecEngineResults) {
                 Integer actInt = (Integer)wser.get(WSSecurityEngineResult.TAG_ACTION);
-                String encrKeyId = (String)wser.get(WSSecurityEngineResult.TAG_ENCRYPTED_KEY_ID);
+                String encrKeyId = (String)wser.get(WSSecurityEngineResult.TAG_ID);
                 if (actInt.intValue() == WSConstants.ENCR && encrKeyId != null) {
                     return encrKeyId;
                 }

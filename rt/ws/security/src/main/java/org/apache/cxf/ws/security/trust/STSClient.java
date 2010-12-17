@@ -32,7 +32,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -101,6 +100,7 @@ import org.apache.neethi.ExactlyOne;
 import org.apache.neethi.Policy;
 import org.apache.neethi.PolicyComponent;
 import org.apache.ws.security.WSConstants;
+import org.apache.ws.security.WSDocInfo;
 import org.apache.ws.security.WSSecurityEngineResult;
 import org.apache.ws.security.WSSecurityException;
 import org.apache.ws.security.components.crypto.Crypto;
@@ -883,13 +883,14 @@ public class STSClient implements Configurable, InterceptorProvider {
                 secret = Base64.decode(b64Secret);
             } else if (childQname.equals(new QName(namespace, WSConstants.ENC_KEY_LN))) {
                 try {
-
-                    EncryptedKeyProcessor processor = new EncryptedKeyProcessor();
-
-                    processor.handleToken(child, null, createCrypto(true), createHandler(), null,
-                                          new Vector<WSSecurityEngineResult>(), null);
-
-                    secret = processor.getDecryptedBytes();
+                    EncryptedKeyProcessor proc = new EncryptedKeyProcessor();
+                    WSDocInfo docInfo = new WSDocInfo(child.getOwnerDocument());
+                    List<WSSecurityEngineResult> result =
+                        proc.handleToken(child, null, createCrypto(true), createHandler(), docInfo, null);
+                    secret = 
+                        (byte[])result.get(0).get(
+                            WSSecurityEngineResult.TAG_DECRYPTED_KEY
+                        );
                 } catch (IOException e) {
                     throw new TrustException("ENCRYPTED_KEY_ERROR", LOG, e);
                 }

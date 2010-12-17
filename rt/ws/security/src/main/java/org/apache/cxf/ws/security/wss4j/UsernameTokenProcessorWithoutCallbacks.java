@@ -49,22 +49,20 @@ public class UsernameTokenProcessorWithoutCallbacks implements Processor {
     private static final Logger LOG = 
         LogUtils.getL7dLogger(UsernameTokenProcessorWithoutCallbacks.class);
     
-    private String utId;
     private UsernameToken ut;
     
-    public void handleToken(Element elem, Crypto crypto, Crypto decCrypto, CallbackHandler cb, 
-        WSDocInfo wsDocInfo, List<WSSecurityEngineResult> returnResults, WSSConfig wsc
+    public List<WSSecurityEngineResult> handleToken(Element elem, Crypto crypto, Crypto decCrypto, 
+        CallbackHandler cb, WSDocInfo wsDocInfo, WSSConfig wsc
     ) throws WSSecurityException {
         if (LOG.isLoggable(Level.FINE)) {
             LOG.fine("Found UsernameToken list element");
         }
         
         Principal principal = handleUsernameToken(elem, cb);
-        returnResults.add(
-            0, 
-            new WSSecurityEngineResult(WSConstants.UT, principal, null, null, null)
-        );
-        utId = ut.getID();
+        WSSecurityEngineResult result = 
+            new WSSecurityEngineResult(WSConstants.UT, principal, null, null, null);
+        result.put(WSSecurityEngineResult.TAG_ID, ut.getID());
+        return java.util.Collections.singletonList(result);
     }
     
     private WSUsernameTokenPrincipal handleUsernameToken(
@@ -101,7 +99,4 @@ public class UsernameTokenProcessorWithoutCallbacks implements Processor {
         return principal;
     }
     
-    public String getId() {
-        return utId;
-    }
 }
