@@ -47,6 +47,7 @@ public class BusApplicationListener implements ApplicationListener, ApplicationC
         while (ac != null && !doIt) {
             if (event.getSource() == ac) {
                 doIt = true;
+                break;
             }
             ac = ac.getParent();
         }
@@ -72,6 +73,13 @@ public class BusApplicationListener implements ApplicationListener, ApplicationC
         if (applicationContext instanceof AbstractApplicationContext) {
             ctx = (AbstractApplicationContext)applicationContext;
             ctx.addApplicationListener(this);
+            ApplicationContext ac = applicationContext.getParent();
+            while (ac != null) {
+                if (ac instanceof AbstractApplicationContext) {
+                    ((AbstractApplicationContext)ac).addApplicationListener(this);
+                }
+                ac = ac.getParent();
+            }
         }        
     }
 
