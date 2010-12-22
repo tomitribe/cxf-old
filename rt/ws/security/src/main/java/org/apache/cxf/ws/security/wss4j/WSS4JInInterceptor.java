@@ -577,17 +577,12 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         for (Map.Entry<QName, Object> entry : map.entrySet()) {
             final QName key = entry.getKey();
             Object val = entry.getValue();
-            
-            if (val instanceof String) {
-                String valStr = ((String)val).trim();
-                if ("null".equals(valStr) || valStr.length() == 0) {
-                    valStr = null;
-                }
-                config.setProcessor(key, valStr);
+            if (val instanceof Class<?>) {
+                config.setProcessor(key, (Class<?>)val);
             } else if (val instanceof Processor) {
                 config.setProcessor(key, (Processor)val);
             } else if (val == null) {
-                config.setProcessor(key, (String)val);
+                config.setProcessor(key, (Class<?>)val);
             }
         }
         final WSSecurityEngine ret = new WSSecurityEngine();

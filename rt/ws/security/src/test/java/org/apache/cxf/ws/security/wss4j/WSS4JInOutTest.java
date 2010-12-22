@@ -601,7 +601,7 @@ public class WSS4JInOutTest extends AbstractSecurityTest {
                 WSConstants.SIG_NS,
                 WSConstants.SIG_LN
             ),
-            new CustomProcessor()
+            CustomProcessor.class
         );
         properties.put(
             WSS4JInInterceptor.PROCESSOR_MAP,

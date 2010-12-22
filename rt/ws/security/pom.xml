@@ -94,10 +94,6 @@
             <version>1.6-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
-                    <groupId>opensaml</groupId>
-                    <artifactId>opensaml</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>xerces</groupId>
                     <artifactId>xercesImpl</artifactId>
                 </exclusion>
