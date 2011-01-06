@@ -517,7 +517,7 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
                         }
                     } else {
                         if (encrToken instanceof IssuedToken) {
-                            encr.setCustomReferenceValue(SecurityTokenReference.SAML_ID_URI);
+                            encr.setCustomReferenceValue(WSConstants.WSS_SAML_KI_VALUE_TYPE);
                             encr.setKeyIdentifierType(WSConstants.CUSTOM_KEY_IDENTIFIER);
                         }
                     }
