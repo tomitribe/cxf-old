@@ -889,7 +889,7 @@ public class STSClient implements Configurable, InterceptorProvider {
                         proc.handleToken(child, null, createCrypto(true), createHandler(), docInfo, null);
                     secret = 
                         (byte[])result.get(0).get(
-                            WSSecurityEngineResult.TAG_DECRYPTED_KEY
+                            WSSecurityEngineResult.TAG_SECRET
                         );
                 } catch (IOException e) {
                     throw new TrustException("ENCRYPTED_KEY_ERROR", LOG, e);

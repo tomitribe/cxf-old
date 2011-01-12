@@ -489,7 +489,7 @@ public class AsymmetricBindingHandler extends AbstractBindingBuilder {
             */
             for (WSSecurityEngineResult wser : wsSecEngineResults) {
                 Integer actInt = (Integer)wser.get(WSSecurityEngineResult.TAG_ACTION);
-                byte[] decryptedKey = (byte[])wser.get(WSSecurityEngineResult.TAG_DECRYPTED_KEY);
+                byte[] decryptedKey = (byte[])wser.get(WSSecurityEngineResult.TAG_SECRET);
                 if (actInt.intValue() == WSConstants.ENCR && decryptedKey != null) {
                     return decryptedKey;
                 }

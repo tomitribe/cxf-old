@@ -770,7 +770,7 @@ public class SymmetricBindingHandler extends AbstractBindingBuilder {
                     Date expires = new Date();
                     expires.setTime(created.getTime() + 300000);
                     SecurityToken tempTok = new SecurityToken(encryptedKeyID, created, expires);
-                    tempTok.setSecret((byte[])wser.get(WSSecurityEngineResult.TAG_DECRYPTED_KEY));
+                    tempTok.setSecret((byte[])wser.get(WSSecurityEngineResult.TAG_SECRET));
                     tempTok.setSHA1(getSHA1((byte[])wser
                                             .get(WSSecurityEngineResult.TAG_ENCRYPTED_EPHEMERAL_KEY)));
                     tokenStore.add(tempTok);
