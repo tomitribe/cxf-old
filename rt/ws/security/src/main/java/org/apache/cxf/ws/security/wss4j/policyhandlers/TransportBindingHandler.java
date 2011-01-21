@@ -396,8 +396,8 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
             WSSecSignature sig = new WSSecSignature();
             if (secTok.getTokenType() == null) {
                 sig.setCustomTokenId(secTok.getId());
-                sig.setCustomTokenValueType(WSConstants.WSS_SAML_NS
-                                            + WSConstants.SAML_ASSERTION_ID);
+                // TODO Add support for SAML2 here
+                sig.setCustomTokenValueType(WSConstants.WSS_SAML_KI_VALUE_TYPE);
                 sig.setKeyIdentifierType(WSConstants.CUSTOM_KEY_IDENTIFIER);
             } else {
                 String id = secTok.getWsuId();

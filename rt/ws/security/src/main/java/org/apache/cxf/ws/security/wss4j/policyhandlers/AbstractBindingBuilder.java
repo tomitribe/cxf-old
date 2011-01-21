@@ -490,9 +490,9 @@ public abstract class AbstractBindingBuilder {
                     sig.setX509Certificate(secToken.getX509Certificate());
                     sig.setCustomTokenId(secToken.getId());
                     sig.setKeyIdentifierType(WSConstants.CUSTOM_KEY_IDENTIFIER);
+                    // TODO Add support for SAML2 here
                     if (secToken.getTokenType() == null) {
-                        sig.setCustomTokenValueType(WSConstants.WSS_SAML_NS
-                                                    + WSConstants.SAML_ASSERTION_ID);
+                        sig.setCustomTokenValueType(WSConstants.WSS_SAML_KI_VALUE_TYPE);
                     } else {
                         sig.setCustomTokenValueType(secToken.getTokenType());
                     }
@@ -575,8 +575,8 @@ public abstract class AbstractBindingBuilder {
             if (tempTok instanceof WSSecSignature) {
                 WSSecSignature tempSig = (WSSecSignature) tempTok;
                 SecurityTokenReference secRef = tempSig.getSecurityTokenReference();
-                if ((WSConstants.WSS_SAML_NS + WSConstants.SAML_ASSERTION_ID).
-                    equals(secRef.getKeyIdentifierValueType())) {
+                // TODO Add support for SAML2 here
+                if ((WSConstants.WSS_SAML_KI_VALUE_TYPE).equals(secRef.getKeyIdentifierValueType())) {
                     
                     Element secRefElement = cloneElement(secRef.getElement());
                     addSupportingElement(secRefElement);
@@ -1499,8 +1499,10 @@ public abstract class AbstractBindingBuilder {
         // be used in the wsse:Reference in ds:KeyInfo
         if (policyToken instanceof X509Token) {
             if (isRequestor()) {
-                sig.setCustomTokenValueType(WSConstants.WSS_SAML_NS
-                                      + WSConstants.ENC_KEY_VALUE_TYPE);
+                // TODO Add support for SAML2 here
+                sig.setCustomTokenValueType(
+                    WSConstants.SOAPMESSAGE_NS11 + "#" + WSConstants.ENC_KEY_VALUE_TYPE
+                );
                 sig.setKeyIdentifierType(WSConstants.CUSTOM_SYMM_SIGNING);
             } else {
                 //the tok has to be an EncryptedKey token
@@ -1512,8 +1514,8 @@ public abstract class AbstractBindingBuilder {
             if (tok.getTokenType() != null) {
                 sig.setCustomTokenValueType(tok.getTokenType());
             } else {
-                sig.setCustomTokenValueType(WSConstants.WSS_SAML_NS
-                                            + WSConstants.SAML_ASSERTION_ID);
+                // TODO Add support for SAML2 here
+                sig.setCustomTokenValueType(WSConstants.WSS_SAML_KI_VALUE_TYPE);
             }
             sig.setKeyIdentifierType(WSConstants.CUSTOM_SYMM_SIGNING);
         }
