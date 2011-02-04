@@ -20,11 +20,11 @@
 package org.apache.cxf.ws.security.wss4j;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.security.auth.Subject;
@@ -66,6 +66,7 @@ import org.apache.ws.security.handler.WSHandlerConstants;
 import org.apache.ws.security.handler.WSHandlerResult;
 import org.apache.ws.security.message.WSSecUsernameToken;
 import org.apache.ws.security.processor.UsernameTokenProcessor;
+import org.apache.ws.security.validate.Validator;
 
 /**
  * 
@@ -129,12 +130,16 @@ public class UsernameTokenInterceptor extends AbstractSoapInterceptor {
                 try  {
                     final WSUsernameTokenPrincipal princ = getPrincipal(child, message);
                     if (princ != null) {
-                        List<WSSecurityEngineResult>v = new Vector<WSSecurityEngineResult>();
-                        v.add(0, new WSSecurityEngineResult(WSConstants.UT, princ, null, null, null));
+                        List<WSSecurityEngineResult>v = new ArrayList<WSSecurityEngineResult>();
+                        int action = WSConstants.UT;
+                        if (princ.getPassword() == null) {
+                            action = WSConstants.UT_UNKNOWN;
+                        }
+                        v.add(0, new WSSecurityEngineResult(action, princ, null, null, null));
                         List<WSHandlerResult> results = CastUtils.cast((List<?>)message
                                                                   .get(WSHandlerConstants.RECV_RESULTS));
                         if (results == null) {
-                            results = new Vector<WSHandlerResult>();
+                            results = new ArrayList<WSHandlerResult>();
                             message.put(WSHandlerConstants.RECV_RESULTS, results);
                         }
                         WSHandlerResult rResult = new WSHandlerResult(null, v);
@@ -165,6 +170,11 @@ public class UsernameTokenInterceptor extends AbstractSoapInterceptor {
         Object validateProperty = message.getContextualProperty(SecurityConstants.VALIDATE_PASSWORD);
         if (validateProperty == null || MessageUtils.isTrue(validateProperty)) {
             UsernameTokenProcessor p = new UsernameTokenProcessor();
+            Object validator = 
+                message.getContextualProperty(SecurityConstants.USERNAME_TOKEN_VALIDATOR);
+            if (validator instanceof Validator) {
+                p.setValidator((Validator)validator);
+            }
             WSDocInfo wsDocInfo = new WSDocInfo(tokenElement.getOwnerDocument());
             List<WSSecurityEngineResult> results = 
                 p.handleToken(tokenElement, null, null, getCallback(message), wsDocInfo, null);

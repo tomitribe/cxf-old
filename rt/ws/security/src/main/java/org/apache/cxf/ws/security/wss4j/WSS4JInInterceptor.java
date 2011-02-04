@@ -20,10 +20,10 @@ package org.apache.cxf.ws.security.wss4j;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -68,9 +68,10 @@ import org.apache.ws.security.handler.RequestData;
 import org.apache.ws.security.handler.WSHandlerConstants;
 import org.apache.ws.security.handler.WSHandlerResult;
 import org.apache.ws.security.message.token.SecurityTokenReference;
-import org.apache.ws.security.message.token.Timestamp;
 import org.apache.ws.security.processor.Processor;
 import org.apache.ws.security.util.WSSecurityUtil;
+import org.apache.ws.security.validate.NoOpValidator;
+import org.apache.ws.security.validate.Validator;
 
 /**
  * Performs WS-Security inbound actions.
@@ -83,6 +84,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
     public static final String SIGNATURE_RESULT = "wss4j.signature.result";
     public static final String PRINCIPAL_RESULT = "wss4j.principal.result";
     public static final String PROCESSOR_MAP = "wss4j.processor.map";
+    public static final String VALIDATOR_MAP = "wss4j.validator.map";
 
     public static final String SECURITY_PROCESSED = WSS4JInInterceptor.class.getName() + ".DONE";
     
@@ -113,10 +115,21 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
     public WSS4JInInterceptor(Map<String, Object> properties) {
         this();
         setProperties(properties);
-        final Map<QName, Object> map = CastUtils.cast(
+        final Map<QName, Object> processorMap = CastUtils.cast(
             (Map<?, ?>)properties.get(PROCESSOR_MAP));
-        if (map != null) {
-            secEngineOverride = createSecurityEngine(map);
+        final Map<QName, Object> validatorMap = CastUtils.cast(
+            (Map<?, ?>)properties.get(VALIDATOR_MAP));
+        
+        if (processorMap != null) {
+            if (validatorMap != null) {
+                processorMap.putAll(validatorMap);
+            }
+            secEngineOverride = createSecurityEngine(processorMap);
+        } else if (validatorMap != null) {
+            if (processorMap != null) {
+                validatorMap.putAll(processorMap);
+            }
+            secEngineOverride = createSecurityEngine(validatorMap);
         }
     }
 
@@ -192,7 +205,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         try {
             reqData.setMsgContext(msg);
             computeAction(msg, reqData);
-            List<Integer> actions = new Vector<Integer>();
+            List<Integer> actions = new ArrayList<Integer>();
             String action = getAction(msg, version);
 
             int doAction = WSSecurityUtil.decodeAction(action, actions);
@@ -233,14 +246,14 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
                     checkSignatureConfirmation(reqData, wsResult);
                 }
 
-                checkSignatures(msg, reqData, wsResult);
-                checkTimestamps(msg, reqData, wsResult);
+                storeSignature(msg, reqData, wsResult);
+                storeTimestamp(msg, reqData, wsResult);
                 checkActions(msg, reqData, wsResult, actions);
                 doResults(msg, actor, doc, wsResult, utWithCallbacks);
             } else { // no security header found
-                // Create an empty result vector to pass into the required validation
+                // Create an empty result list to pass into the required validation
                 // methods.
-                wsResult = new Vector<WSSecurityEngineResult>();
+                wsResult = new ArrayList<WSSecurityEngineResult>();
                 
                 if (doc.getSOAPPart().getEnvelope().getBody().hasFault()) {
                     LOG.warning("Request does not contain Security header, " 
@@ -303,11 +316,11 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         }
     }
     
-    private void checkSignatures(
+    private void storeSignature(
         SoapMessage msg, RequestData reqData, List<WSSecurityEngineResult> wsResult
     ) throws WSSecurityException {
-        // Extract the signature action result from the action vector
-        List<WSSecurityEngineResult> signatureResults = new Vector<WSSecurityEngineResult>();
+        // Extract the signature action result from the action list
+        List<WSSecurityEngineResult> signatureResults = new ArrayList<WSSecurityEngineResult>();
         signatureResults = 
             WSSecurityUtil.fetchAllActionResults(wsResult, WSConstants.SIGN, signatureResults);
 
@@ -317,32 +330,16 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         }
     }
     
-    protected void checkTimestamps(
+    private void storeTimestamp(
         SoapMessage msg, RequestData reqData, List<WSSecurityEngineResult> wsResult
     ) throws WSSecurityException {
-        /*
-         * Perform further checks on the timestamp that was transmitted in
-         * the header. In the following implementation the timestamp is
-         * valid if it was created after (now-ttl), where ttl is set on
-         * server side, not by the client. Note: the method
-         * verifyTimestamp(Timestamp) allows custom implementations with
-         * other validation algorithms for subclasses.
-         */
-        // Extract the timestamp action result from the action vector
-        List<WSSecurityEngineResult> timestampResults = new Vector<WSSecurityEngineResult>();
+        // Extract the timestamp action result from the action list
+        List<WSSecurityEngineResult> timestampResults = new ArrayList<WSSecurityEngineResult>();
         timestampResults = 
             WSSecurityUtil.fetchAllActionResults(wsResult, WSConstants.TS, timestampResults);
 
         if (!timestampResults.isEmpty()) {
-            for (WSSecurityEngineResult result : timestampResults) {
-                Timestamp timestamp = (Timestamp)result.get(WSSecurityEngineResult.TAG_TIMESTAMP);
-
-                if (timestamp != null && !verifyTimestamp(timestamp, decodeTimeToLive(reqData))) {
-                    LOG.warning("The timestamp could not be validated");
-                    throw new WSSecurityException(WSSecurityException.MESSAGE_EXPIRED);
-                }
-                msg.put(TIMESTAMP_RESULT, result);
-            }
+            msg.put(TIMESTAMP_RESULT, timestampResults.get(timestampResults.size() - 1));
         }
     }
     
@@ -373,7 +370,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
          */
         List<WSHandlerResult> results = CastUtils.cast((List<?>)msg.get(WSHandlerConstants.RECV_RESULTS));
         if (results == null) {
-            results = new Vector<WSHandlerResult>();
+            results = new ArrayList<WSHandlerResult>();
             msg.put(WSHandlerConstants.RECV_RESULTS, results);
         }
         WSHandlerResult rResult = new WSHandlerResult(actor, wsResult);
@@ -479,7 +476,8 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
 
     protected CallbackHandler getCallback(RequestData reqData, int doAction, boolean utWithCallbacks) 
         throws WSSecurityException {
-        if (!utWithCallbacks && (doAction & WSConstants.UT) != 0) {
+        if (!utWithCallbacks 
+            && ((doAction & WSConstants.UT) != 0 || (doAction & WSConstants.UT_UNKNOWN) != 0)) {
             CallbackHandler pwdCallback = null;
             try {
                 pwdCallback = getCallback(reqData, doAction);
@@ -553,10 +551,9 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         }
         
         if (!utWithCallbacks) {
-            Map<QName, Object> profiles = new HashMap<QName, Object>(3);
-            Processor processor = new UsernameTokenProcessorWithoutCallbacks();
-            profiles.put(new QName(WSConstants.WSSE_NS, WSConstants.USERNAME_TOKEN_LN), processor);
-            profiles.put(new QName(WSConstants.WSSE11_NS, WSConstants.USERNAME_TOKEN_LN), processor);
+            Map<QName, Object> profiles = new HashMap<QName, Object>(1);
+            Validator validator = new NoOpValidator();
+            profiles.put(WSSecurityEngine.USERNAME_TOKEN, validator);
             return createSecurityEngine(profiles);
         }
         
@@ -581,6 +578,8 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
                 config.setProcessor(key, (Class<?>)val);
             } else if (val instanceof Processor) {
                 config.setProcessor(key, (Processor)val);
+            } else if (val instanceof Validator) {
+                config.setValidator(key, (Validator)val);
             } else if (val == null) {
                 config.setProcessor(key, (Class<?>)val);
             }

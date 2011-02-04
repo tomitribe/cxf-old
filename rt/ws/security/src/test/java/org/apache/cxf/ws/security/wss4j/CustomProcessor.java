@@ -26,6 +26,7 @@ import org.apache.ws.security.WSSecurityException;
 import org.apache.ws.security.components.crypto.Crypto;
 import org.apache.ws.security.message.token.SecurityContextToken;
 import org.apache.ws.security.processor.Processor;
+import org.apache.ws.security.validate.Validator;
 
 /**
  * a custom processor that inserts itself into the results vector
@@ -48,6 +49,10 @@ public class CustomProcessor implements Processor {
             );
         result.put("foo", this);
         return java.util.Collections.singletonList(result);
+    }
+    
+    public void setValidator(Validator validator) {
+        //
     }
 
 }
