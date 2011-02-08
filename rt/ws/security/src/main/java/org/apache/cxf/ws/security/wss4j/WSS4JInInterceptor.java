@@ -451,7 +451,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
                 
                 String id = pc.getIdentifier();
                 
-                if (SecurityTokenReference.ENC_KEY_SHA1_URI.equals(pc.getKeyType())) {
+                if (SecurityTokenReference.ENC_KEY_SHA1_URI.equals(pc.getType())) {
                     for (SecurityToken token : store.getValidTokens()) {
                         if (id.equals(token.getSHA1())) {
                             pc.setKey(token.getSecret());
@@ -477,7 +477,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
     protected CallbackHandler getCallback(RequestData reqData, int doAction, boolean utWithCallbacks) 
         throws WSSecurityException {
         if (!utWithCallbacks 
-            && ((doAction & WSConstants.UT) != 0 || (doAction & WSConstants.UT_UNKNOWN) != 0)) {
+            && ((doAction & WSConstants.UT) != 0 || (doAction & WSConstants.UT_NOPASSWORD) != 0)) {
             CallbackHandler pwdCallback = null;
             try {
                 pwdCallback = getCallback(reqData, doAction);

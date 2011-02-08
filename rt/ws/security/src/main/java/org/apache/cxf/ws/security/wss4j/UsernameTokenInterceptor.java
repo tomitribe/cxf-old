@@ -133,7 +133,7 @@ public class UsernameTokenInterceptor extends AbstractSoapInterceptor {
                         List<WSSecurityEngineResult>v = new ArrayList<WSSecurityEngineResult>();
                         int action = WSConstants.UT;
                         if (princ.getPassword() == null) {
-                            action = WSConstants.UT_UNKNOWN;
+                            action = WSConstants.UT_NOPASSWORD;
                         }
                         v.add(0, new WSSecurityEngineResult(action, princ, null, null, null));
                         List<WSHandlerResult> results = CastUtils.cast((List<?>)message
