@@ -135,6 +135,7 @@ public class JMSContinuation implements Continuation {
             public void run() {
                 synchronized (JMSContinuation.this) { 
                     if (isPending) {
+                        cancelTimerTask();
                         doResume();
                     }
                 }
