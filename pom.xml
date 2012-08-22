@@ -31,6 +31,7 @@
     <artifactId>apache-cxf</artifactId>
     <packaging>pom</packaging>
     <name>Apache CXF Karaf Features</name>
+    <version>2.5.5.1</version>
     <description>Apache CXF Karaf Features</description>
     
     <!-- The validate plugin will export these provided dependencies bundles' export packages first -->
