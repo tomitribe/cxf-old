@@ -529,7 +529,6 @@ public class HTTPConduit
                 connection.setChunkedStreamingMode(-1);                    
             }
         }
-
         cookies.writeToMessageHeaders(message);
 
         // The trust decision is relegated to after the "flushing" of the
@@ -1317,7 +1316,8 @@ public class HTTPConduit
         @Override
         public void thresholdReached() {
             if (chunking) {
-                connection.setChunkedStreamingMode(-1);
+                connection.setChunkedStreamingMode(
+                    HTTPConduit.this.getClient().getChunkLength());
             }
         }
 
