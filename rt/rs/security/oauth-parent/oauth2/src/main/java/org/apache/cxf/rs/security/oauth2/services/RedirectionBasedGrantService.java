@@ -39,9 +39,11 @@ import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.rs.security.oauth2.common.Client;
 import org.apache.cxf.rs.security.oauth2.common.OAuthAuthorizationData;
 import org.apache.cxf.rs.security.oauth2.common.OAuthPermission;
+import org.apache.cxf.rs.security.oauth2.common.Property;
 import org.apache.cxf.rs.security.oauth2.common.ServerAccessToken;
 import org.apache.cxf.rs.security.oauth2.common.UserSubject;
 import org.apache.cxf.rs.security.oauth2.provider.OAuthServiceException;
+import org.apache.cxf.rs.security.oauth2.provider.ResourceOwnerNameProvider;
 import org.apache.cxf.rs.security.oauth2.provider.SessionAuthenticityTokenProvider;
 import org.apache.cxf.rs.security.oauth2.provider.SubjectCreator;
 import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
@@ -58,6 +60,7 @@ public abstract class RedirectionBasedGrantService extends AbstractOAuthService 
     private boolean isClientConfidential;
     private SessionAuthenticityTokenProvider sessionAuthenticityTokenProvider;
     private SubjectCreator subjectCreator;
+    private ResourceOwnerNameProvider resourceOwnerNameProvider;
     
     protected RedirectionBasedGrantService(String supportedResponseType,
                                            String supportedGrantType,
@@ -156,6 +159,7 @@ public abstract class RedirectionBasedGrantService extends AbstractOAuthService 
         // Return the authorization challenge data to the end user 
         OAuthAuthorizationData data = 
             createAuthorizationData(client, params, permissions);
+        personalizeData(data, userSubject);
         return Response.ok(data).build();
         
     }
@@ -180,12 +184,20 @@ public abstract class RedirectionBasedGrantService extends AbstractOAuthService 
         secData.setApplicationWebUri(client.getApplicationWebUri());
         secData.setApplicationDescription(client.getApplicationDescription());
         secData.setApplicationLogoUri(client.getApplicationLogoUri());
-        
+        List<Property> extraProperties = client.getProperties();
+        secData.setExtraApplicationProperties(extraProperties == null ? Collections.<Property>emptyList()
+            : Collections.unmodifiableList(extraProperties));
         String replyTo = getMessageContext().getUriInfo()
             .getAbsolutePathBuilder().path("decision").build().toString();
         secData.setReplyTo(replyTo);
         
         return secData;
+    }
+    
+    protected void personalizeData(OAuthAuthorizationData data, UserSubject userSubject) {
+        if (resourceOwnerNameProvider != null) {
+            data.setEndUserName(resourceOwnerNameProvider.getName(userSubject));
+        }
     }
     
     /**
@@ -359,5 +371,9 @@ public abstract class RedirectionBasedGrantService extends AbstractOAuthService 
         }
         return client;
         
+    }
+
+    public void setResourceOwnerNameProvider(ResourceOwnerNameProvider resourceOwnerNameProvider) {
+        this.resourceOwnerNameProvider = resourceOwnerNameProvider;
     }
 }
