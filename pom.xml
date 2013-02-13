@@ -31,7 +31,12 @@
     <artifactId>apache-cxf</artifactId>
     <packaging>pom</packaging>
     <name>Apache CXF Karaf Features</name>
+    <version>2.6.6.1</version>
     <description>Apache CXF Karaf Features</description>
+
+    <properties>
+        <cxf.james.mim4j.version>0.7.2</cxf.james.mim4j.version>
+    </properties>
     
     <!-- The validate plugin will export these provided dependencies bundles' export packages first -->
     <dependencies>
