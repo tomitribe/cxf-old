@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.cxf.wsdl;
+package org.apache.cxf.ws.addressing;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -37,10 +37,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.wsdl.Definition;
-import javax.wsdl.Port;
-import javax.wsdl.Service;
-import javax.wsdl.WSDLException;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -67,11 +63,9 @@ import org.xml.sax.InputSource;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
-import org.apache.cxf.common.WSDLConstants;
 import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.jaxb.JAXBContextCache;
 import org.apache.cxf.common.logging.LogUtils;
-import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.common.xmlschema.LSInputImpl;
 import org.apache.cxf.endpoint.EndpointResolverRegistry;
 import org.apache.cxf.endpoint.Server;
@@ -87,10 +81,6 @@ import org.apache.cxf.staxutils.StaxUtils;
 import org.apache.cxf.staxutils.W3CDOMStreamWriter;
 import org.apache.cxf.transport.Destination;
 import org.apache.cxf.transport.MultiplexDestination;
-import org.apache.cxf.ws.addressing.AttributedURIType;
-import org.apache.cxf.ws.addressing.EndpointReferenceType;
-import org.apache.cxf.ws.addressing.JAXWSAConstants;
-import org.apache.cxf.ws.addressing.MetadataType;
 import org.apache.cxf.ws.addressing.wsdl.AttributedQNameType;
 import org.apache.cxf.ws.addressing.wsdl.ServiceNameType;
 import org.apache.ws.commons.schema.XmlSchema;
@@ -235,7 +225,7 @@ public final class EndpointReferenceUtils {
         }
     }
 
-    public static final String ANONYMOUS_ADDRESS = WSAEndpointReferenceUtils.ANONYMOUS_ADDRESS;
+    public static final String ANONYMOUS_ADDRESS = "http://www.w3.org/2005/08/addressing/anonymous";
     
     private static final Logger LOG = LogUtils.getL7dLogger(EndpointReferenceUtils.class);
 
@@ -270,9 +260,9 @@ public final class EndpointReferenceUtils {
         = new AtomicReference<Reference<JAXBContext>>(new SoftReference<JAXBContext>(null));
     static {
         ADDRESSING_CLASSES.add(WSA_WSDL_OBJECT_FACTORY.getClass());
-        ADDRESSING_CLASSES.add(WSAEndpointReferenceUtils.WSA_OBJECT_FACTORY.getClass());
+        ADDRESSING_CLASSES.add(org.apache.cxf.ws.addressing.ObjectFactory.class);
     }
-    
+
     private EndpointReferenceUtils() {
         // Utility class - never constructed
     }
@@ -288,12 +278,22 @@ public final class EndpointReferenceUtils {
                                              String portName) {
         if (null != serviceName) {
             JAXBElement<ServiceNameType> jaxbElement = getServiceNameType(serviceName, portName);
-            MetadataType mt = WSAEndpointReferenceUtils.getSetMetadata(ref);
+            MetadataType mt = getSetMetadata(ref);
 
             mt.getAny().add(jaxbElement);
         }
     }
     
+    
+    public static MetadataType getSetMetadata(EndpointReferenceType ref) {
+        MetadataType mt = ref.getMetadata();
+        if (null == mt) {
+            mt = new MetadataType();
+            ref.setMetadata(mt);
+        }
+        return mt;
+    }
+        
     public static JAXBElement<ServiceNameType> getServiceNameType(QName serviceName, String portName) {
         ServiceNameType serviceNameType = WSA_WSDL_OBJECT_FACTORY.createServiceNameType();
         serviceNameType.setValue(serviceName);
@@ -327,9 +327,6 @@ public final class EndpointReferenceUtils {
                     String service = content;
                     if (content.contains(":")) {
                         namespaceURI = getNameSpaceUri(node, content, namespaceURI);
-                        if (StringUtils.isEmpty(namespaceURI)) {
-                            namespaceURI = findNamespaceHack(ref, bus);                                
-                        }
                         service = getService(content);
                     } else {
                         Node nodeAttr = node.getAttributes().getNamedItem("xmlns");
@@ -425,7 +422,7 @@ public final class EndpointReferenceUtils {
             JAXBElement<AttributedQNameType> jaxbElement = 
                 WSA_WSDL_OBJECT_FACTORY.createInterfaceName(interfaceNameType);
 
-            MetadataType mt = WSAEndpointReferenceUtils.getSetMetadata(ref);
+            MetadataType mt = getSetMetadata(ref);
             mt.getAny().add(jaxbElement);
         }
     }
@@ -447,9 +444,6 @@ public final class EndpointReferenceUtils {
                     //String service = content;
                     if (content.contains(":")) {
                         namespaceURI = getNameSpaceUri(node, content, namespaceURI);
-                        if (StringUtils.isEmpty(namespaceURI)) {
-                            namespaceURI = findNamespaceHack(ref, bus);                                
-                        }
                         content = getService(content);
                     } else {
                         Node nodeAttr = node.getAttributes().getNamedItem("xmlns");
@@ -471,37 +465,9 @@ public final class EndpointReferenceUtils {
         return null;
     }
     
-    private static String findNamespaceHack(EndpointReferenceType ref, Bus bus) {
-        //probably a broken version of Xalan, we'll have to 
-        //try a hack to figure out the namespace as xalan
-        //dropped the namespace declaration so there isn't 
-        //a way to map the namespace prefix to the real namespace.
-        //This is fixed in xalan 2.7.1, but older versions may 
-        //be used
-        if (bus == null) {
-            return "";
-        }
-        String wsdlLocation = getWSDLLocation(ref);
-        if (StringUtils.isEmpty(wsdlLocation)) {
-            return "";
-        }
-        if (bus != null) {
-            WSDLManager manager = bus.getExtension(WSDLManager.class);
-            if (manager != null) {
-                try {
-                    Definition def = manager.getDefinition(wsdlLocation);
-                    return def.getTargetNamespace();
-                } catch (WSDLException e) {
-                    //ignore
-                }
-            }
-        }
-        return "";
-    }
-
     public static void setWSDLLocation(EndpointReferenceType ref, String... wsdlLocation) {
         
-        MetadataType metadata = WSAEndpointReferenceUtils.getSetMetadata(ref);
+        MetadataType metadata = getSetMetadata(ref);
 
         //wsdlLocation attribute is a list of anyURI.
         StringBuilder strBuf = new StringBuilder();
@@ -543,7 +509,7 @@ public final class EndpointReferenceUtils {
         throws EndpointUtilsException {
         
         if (null != ref) {
-            MetadataType mt = WSAEndpointReferenceUtils.getSetMetadata(ref);
+            MetadataType mt = getSetMetadata(ref);
             List<Object> anyList = mt.getAny();
             try {
                 for (Source source : metadata) {
@@ -591,41 +557,6 @@ public final class EndpointReferenceUtils {
                                                  te);
             }
         }
-    }
-   
-    /**
-     * Gets the WSDL definition for the provided endpoint reference.
-     * @param manager - the WSDL manager 
-     * @param ref - the endpoint reference
-     * @return Definition the wsdl definition
-     * @throws WSDLException
-     */
-    public static Definition getWSDLDefinition(WSDLManager manager, EndpointReferenceType ref)
-        throws WSDLException {
-
-        if (null == manager) {
-            return null;
-        }
-
-        MetadataType metadata = ref.getMetadata();
-        String location = getWSDLLocation(ref);
-
-        if (null != location) {
-            //Pick up the first url to obtain the wsdl defintion
-            return manager.getDefinition(location);
-        }
-
-        for (Object obj : metadata.getAny()) {
-            if (obj instanceof Element) {
-                Element el = (Element)obj;
-                if (StringUtils.isEqualUri(el.getNamespaceURI(), WSDLConstants.NS_WSDL11)
-                    && "definitions".equals(el.getLocalName())) {
-                    return manager.getDefinition(el);
-                }
-            }
-        }
-
-        return null;
     }
     
     
@@ -748,98 +679,16 @@ public final class EndpointReferenceUtils {
     
 
     /**
-     * Gets the WSDL port for the provided endpoint reference.
-     * @param manager - the WSDL manager 
-     * @param ref - the endpoint reference
-     * @return Port the wsdl port
-     * @throws WSDLException
-     */
-    public static Port getPort(WSDLManager manager, EndpointReferenceType ref) throws WSDLException {
-
-        Definition def = getWSDLDefinition(manager, ref);
-        if (def == null) {
-            throw new WSDLException(WSDLException.OTHER_ERROR, "unable to find definition for reference");
-        }
-
-        MetadataType metadata = ref.getMetadata();
-        for (Object obj : metadata.getAny()) {
-            
-            if (obj instanceof JAXBElement) {
-                Object jaxbVal = ((JAXBElement<?>)obj).getValue();
-
-                if (jaxbVal instanceof ServiceNameType) {
-                    Port port = null;
-                    ServiceNameType snt = (ServiceNameType)jaxbVal;
-                    if (LOG.isLoggable(Level.FINEST)) {
-                        LOG.log(Level.FINEST, "found service name " + snt.getValue().getLocalPart());
-                    }
-                    Service service = def.getService(snt.getValue());
-                    if (service == null) {
-                        LOG.log(Level.WARNING, "can't find the service name ["
-                                + snt.getValue()
-                                + "], using the default service name in wsdl");
-                        service = (Service)def.getServices().values().iterator().next();
-                        if (service == null) {
-                            return null;
-                        }
-                    }
-                    String endpoint = snt.getEndpointName();
-                    if ("".equals(endpoint) && service.getPorts().size() == 1) {
-                        port = (Port)service.getPorts().values().iterator().next();
-                    } else {
-                        port = service.getPort(endpoint);
-                    }
-                    // FIXME this needs to be looked at service.getPort(endpoint)
-                    //should not return null when endpoint is valid
-                    if (port == null) {
-                        LOG.log(Level.WARNING, "can't find the port name ["
-                                + endpoint
-                                + "], using the default port name in wsdl");
-                        port = (Port)service.getPorts().values().iterator().next();
-                    }
-                    return port;
-                }
-            }
-        }
-
-        if (def.getServices().size() == 1) {
-            Service service = (Service)def.getServices().values().iterator().next();
-            if (service.getPorts().size() == 1) { 
-                return (Port)service.getPorts().values().iterator().next();
-            }
-        }
-        
-        QName serviceName = getServiceName(ref, null);
-        if (null != serviceName) {
-            if (StringUtils.isEmpty(serviceName.getNamespaceURI())) {
-                serviceName = new QName(def.getTargetNamespace(), serviceName.getLocalPart());
-            }
-            Service service = def.getService(serviceName);
-            if (service == null) {
-                throw new WSDLException(WSDLException.OTHER_ERROR, "Cannot find service for " + serviceName);
-            }
-            if (service.getPorts().size() == 1) {
-                return (Port)service.getPorts().values().iterator().next();
-            }
-            String str = getPortName(ref);
-            LOG.log(Level.FINE, "getting port " + str + " from service " + service.getQName());
-            Port port = service.getPort(str);
-            if (port == null) {
-                throw new WSDLException(WSDLException.OTHER_ERROR, "unable to find port " + str);
-            }
-            return port;
-        }
-        // TODO : throw exception here
-        return null;
-    }
-
-    /**
      * Get the address from the provided endpoint reference.
      * @param ref - the endpoint reference
      * @return String the address of the endpoint
      */
     public static String getAddress(EndpointReferenceType ref) {
-        return WSAEndpointReferenceUtils.getAddress(ref);
+        AttributedURIType a = ref.getAddress();
+        if (null != a) {
+            return a.getValue();
+        }
+        return null;
     }
 
     /**
@@ -848,7 +697,9 @@ public final class EndpointReferenceUtils {
      * @param address - the address
      */
     public static void setAddress(EndpointReferenceType ref, String address) {
-        WSAEndpointReferenceUtils.setAddress(ref, address);
+        AttributedURIType a = new AttributedURIType();
+        a.setValue(address);
+        ref.setAddress(a);
     }
     /**
      * Create an endpoint reference for the provided wsdl, service and portname.
@@ -860,8 +711,8 @@ public final class EndpointReferenceUtils {
     public static EndpointReferenceType getEndpointReference(URL wsdlUrl, 
                                                              QName serviceName,
                                                              String portName) {
-        EndpointReferenceType reference = 
-            WSAEndpointReferenceUtils.createEndpointReferenceWithMetadata();
+        EndpointReferenceType reference = new EndpointReferenceType();
+        reference.setMetadata(new MetadataType());
         setServiceAndPortName(reference, serviceName, portName);
         //TODO To Ensure it is a valid URI syntax.
         setWSDLLocation(reference, wsdlUrl.toString());
@@ -876,8 +727,11 @@ public final class EndpointReferenceUtils {
      * @return EndpointReferenceType - the duplicate endpoint reference
      */
     public static EndpointReferenceType duplicate(EndpointReferenceType ref) {
-
-        return WSAEndpointReferenceUtils.duplicate(ref);
+        EndpointReferenceType reference = new EndpointReferenceType();
+        reference.setMetadata(ref.getMetadata());
+        reference.getAny().addAll(ref.getAny());
+        reference.setAddress(ref.getAddress());
+        return reference;
     }
     
     /**
@@ -886,13 +740,15 @@ public final class EndpointReferenceUtils {
      * @return EndpointReferenceType - the endpoint reference
      */
     public static EndpointReferenceType getEndpointReference(String address) {
-
-        return WSAEndpointReferenceUtils.getEndpointReference(address);
+        EndpointReferenceType reference = new EndpointReferenceType();
+        setAddress(reference, address);
+        return reference;
     }
     
     public static EndpointReferenceType getEndpointReference(AttributedURIType address) {
-
-        return WSAEndpointReferenceUtils.getEndpointReference(address);
+        EndpointReferenceType reference = new EndpointReferenceType();
+        reference.setAddress(address);
+        return reference;
     }    
     
     /**
@@ -900,8 +756,9 @@ public final class EndpointReferenceUtils {
      * @return EndpointReferenceType - the endpoint reference
      */
     public static EndpointReferenceType getAnonymousEndpointReference() {
-        
-        return WSAEndpointReferenceUtils.getAnonymousEndpointReference();
+        EndpointReferenceType reference = new EndpointReferenceType();
+        setAddress(reference, ANONYMOUS_ADDRESS);
+        return reference;
     }
     
     /**

@@ -17,10 +17,11 @@
  * under the License.
  */
 
-package org.apache.cxf.binding;
+package org.apache.cxf.wsdl.binding;
 
 import javax.wsdl.Binding;
 
+import org.apache.cxf.binding.BindingFactory;
 import org.apache.cxf.service.model.BindingInfo;
 import org.apache.cxf.service.model.ServiceInfo;
 

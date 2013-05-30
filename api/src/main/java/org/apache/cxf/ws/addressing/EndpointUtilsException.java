@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.cxf.wsdl;
+package org.apache.cxf.ws.addressing;
 
 import org.apache.cxf.common.i18n.Exception;
 import org.apache.cxf.common.i18n.Message;

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.cxf.helpers;
+package org.apache.cxf.wsdl;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -36,6 +36,8 @@ import javax.wsdl.PortType;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
+
+import org.apache.cxf.helpers.CastUtils;
 
 public class WSDLHelper {
 
