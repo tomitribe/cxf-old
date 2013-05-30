@@ -107,12 +107,6 @@ import org.apache.cxf.service.model.SchemaInfo;
 import org.apache.cxf.service.model.ServiceInfo;
 import org.apache.cxf.service.model.UnwrappedOperationInfo;
 import org.apache.cxf.wsdl.WSDLManager;
-import org.apache.cxf.wsdl.service.factory.AbstractServiceConfiguration;
-import org.apache.cxf.wsdl.service.factory.AbstractServiceFactoryBean;
-import org.apache.cxf.wsdl.service.factory.DefaultServiceConfiguration;
-import org.apache.cxf.wsdl.service.factory.ServiceConstructionException;
-import org.apache.cxf.wsdl.service.factory.SimpleMethodDispatcher;
-import org.apache.cxf.wsdl.service.factory.FactoryBeanListener.Event;
 import org.apache.cxf.wsdl11.WSDLServiceBuilder;
 import org.apache.cxf.wsdl11.WSDLServiceFactory;
 import org.apache.ws.commons.schema.XmlSchema;
@@ -134,7 +128,7 @@ import org.apache.ws.commons.schema.utils.NamespaceMap;
  * will be filled in from the service class. If no WSDL URL is specified, the
  * Service will be constructed directly from the class structure.
  */
-public class ReflectionServiceFactoryBean extends AbstractServiceFactoryBean {
+public class ReflectionServiceFactoryBean extends org.apache.cxf.service.factory.AbstractServiceFactoryBean {
 
     public static final String ENDPOINT_CLASS = "endpoint.class";
     public static final String GENERIC_TYPE = "generic.type";

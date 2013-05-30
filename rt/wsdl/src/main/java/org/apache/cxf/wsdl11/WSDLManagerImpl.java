@@ -52,7 +52,6 @@ import org.xml.sax.InputSource;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusException;
-import org.apache.cxf.catalog.CatalogWSDLLocator;
 import org.apache.cxf.common.WSDLConstants;
 import org.apache.cxf.common.injection.NoJSR250Annotations;
 import org.apache.cxf.common.logging.LogUtils;

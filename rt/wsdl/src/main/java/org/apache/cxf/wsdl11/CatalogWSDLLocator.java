@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.cxf.catalog;
+package org.apache.cxf.wsdl11;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -26,6 +26,8 @@ import javax.wsdl.xml.WSDLLocator;
 import org.xml.sax.InputSource;
 
 import org.apache.cxf.Bus;
+import org.apache.cxf.catalog.OASISCatalogManager;
+import org.apache.cxf.catalog.OASISCatalogManagerHelper;
 import org.apache.cxf.resource.ExtendedURIResolver;
 import org.apache.cxf.transport.TransportURIResolver;
 

@@ -27,18 +27,17 @@ import javax.xml.namespace.QName;
 import org.apache.cxf.service.model.InterfaceInfo;
 import org.apache.cxf.service.model.MessagePartInfo;
 import org.apache.cxf.service.model.OperationInfo;
-import org.apache.cxf.wsdl.service.factory.AbstractServiceFactoryBean;
 
 public abstract class AbstractServiceConfiguration {
     protected String serviceNamespace;
     
-    private AbstractServiceFactoryBean serviceFactory;
+    private ReflectionServiceFactoryBean serviceFactory;
     
-    public AbstractServiceFactoryBean getServiceFactory() {
+    public ReflectionServiceFactoryBean getServiceFactory() {
         return serviceFactory;
     }
 
-    public void setServiceFactory(AbstractServiceFactoryBean serviceFactory) {
+    public void setServiceFactory(ReflectionServiceFactoryBean serviceFactory) {
         this.serviceFactory = serviceFactory;
     }
 
