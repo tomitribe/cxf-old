@@ -16,26 +16,28 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.cxf.wsdl.service.factory;
 
-package org.apache.cxf.service.factory;
+import javax.wsdl.extensions.soap.SOAPBinding;
 
-import java.lang.reflect.Method;
-
-import org.apache.cxf.common.util.StringUtils;
-import org.apache.cxf.service.model.OperationInfo;
+import org.apache.cxf.service.model.BindingInfo;
+import org.apache.cxf.wsdl.service.factory.AbstractServiceConfiguration;
 
 /**
- * Provide a SOAPAction header for the benefit of dusty toolkits
- * which still require them (e.g. Oracle OC4J).
+ * An AbstractServiceConfiguration that gets the style
+ * from the BindingInfo obtained parsing the WSDL.
+ *  
  */
-public class MethodNameSoapActionServiceConfiguration extends AbstractServiceConfiguration {
-    /** {@inheritDoc}*/
-    @Override
-    public String getAction(OperationInfo op, Method method) {
-        String action = op.getName().getLocalPart();
-        if (StringUtils.isEmpty(action)) {
-            action = method.getName();
-        }
-        return action; 
+public class WSDLBasedServiceConfiguration extends AbstractServiceConfiguration {
+
+    private BindingInfo bi;
+
+    public WSDLBasedServiceConfiguration(BindingInfo bi) {
+        this.bi = bi;
+    }
+
+    public String getStyle() {
+        SOAPBinding sb = bi.getExtensor(SOAPBinding.class);
+        return (sb == null) ? null : sb.getStyle();
     }
 }

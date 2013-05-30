@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.cxf.service.factory;
+package org.apache.cxf.wsdl.service.factory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -27,17 +27,18 @@ import javax.xml.namespace.QName;
 import org.apache.cxf.service.model.InterfaceInfo;
 import org.apache.cxf.service.model.MessagePartInfo;
 import org.apache.cxf.service.model.OperationInfo;
+import org.apache.cxf.wsdl.service.factory.AbstractServiceFactoryBean;
 
 public abstract class AbstractServiceConfiguration {
     protected String serviceNamespace;
     
-    private ReflectionServiceFactoryBean serviceFactory;
+    private AbstractServiceFactoryBean serviceFactory;
     
-    public ReflectionServiceFactoryBean getServiceFactory() {
+    public AbstractServiceFactoryBean getServiceFactory() {
         return serviceFactory;
     }
 
-    public void setServiceFactory(ReflectionServiceFactoryBean serviceFactory) {
+    public void setServiceFactory(AbstractServiceFactoryBean serviceFactory) {
         this.serviceFactory = serviceFactory;
     }
 

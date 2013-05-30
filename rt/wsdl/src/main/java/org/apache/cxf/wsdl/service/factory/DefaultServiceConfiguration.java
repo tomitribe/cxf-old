@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.cxf.service.factory;
+package org.apache.cxf.wsdl.service.factory;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -36,6 +36,7 @@ import org.apache.cxf.message.Exchange;
 import org.apache.cxf.service.model.InterfaceInfo;
 import org.apache.cxf.service.model.MessagePartInfo;
 import org.apache.cxf.service.model.OperationInfo;
+import org.apache.cxf.wsdl.service.factory.ServiceConstructionException;
 
 public class DefaultServiceConfiguration extends AbstractServiceConfiguration {
 

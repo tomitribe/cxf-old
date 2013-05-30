@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.cxf.service.factory;
+package org.apache.cxf.wsdl.service.factory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -90,7 +90,6 @@ import org.apache.cxf.resource.ResourceManager;
 import org.apache.cxf.service.Service;
 import org.apache.cxf.service.ServiceImpl;
 import org.apache.cxf.service.ServiceModelSchemaValidator;
-import org.apache.cxf.service.factory.FactoryBeanListener.Event;
 import org.apache.cxf.service.invoker.FactoryInvoker;
 import org.apache.cxf.service.invoker.Invoker;
 import org.apache.cxf.service.invoker.MethodDispatcher;
@@ -108,6 +107,12 @@ import org.apache.cxf.service.model.SchemaInfo;
 import org.apache.cxf.service.model.ServiceInfo;
 import org.apache.cxf.service.model.UnwrappedOperationInfo;
 import org.apache.cxf.wsdl.WSDLManager;
+import org.apache.cxf.wsdl.service.factory.AbstractServiceConfiguration;
+import org.apache.cxf.wsdl.service.factory.AbstractServiceFactoryBean;
+import org.apache.cxf.wsdl.service.factory.DefaultServiceConfiguration;
+import org.apache.cxf.wsdl.service.factory.ServiceConstructionException;
+import org.apache.cxf.wsdl.service.factory.SimpleMethodDispatcher;
+import org.apache.cxf.wsdl.service.factory.FactoryBeanListener.Event;
 import org.apache.cxf.wsdl11.WSDLServiceBuilder;
 import org.apache.cxf.wsdl11.WSDLServiceFactory;
 import org.apache.ws.commons.schema.XmlSchema;

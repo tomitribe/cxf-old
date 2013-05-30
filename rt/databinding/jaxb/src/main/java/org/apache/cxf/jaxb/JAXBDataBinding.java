@@ -83,11 +83,11 @@ import org.apache.cxf.jaxb.io.DataWriterImpl;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.resource.URIResolver;
 import org.apache.cxf.service.Service;
-import org.apache.cxf.service.factory.ReflectionServiceFactoryBean;
 import org.apache.cxf.service.factory.ServiceConstructionException;
 import org.apache.cxf.service.model.ServiceInfo;
 import org.apache.cxf.staxutils.StaxUtils;
 import org.apache.cxf.ws.addressing.ObjectFactory;
+import org.apache.cxf.wsdl.service.factory.ReflectionServiceFactoryBean;
 
 @NoJSR250Annotations
 public class JAXBDataBinding extends AbstractDataBinding
