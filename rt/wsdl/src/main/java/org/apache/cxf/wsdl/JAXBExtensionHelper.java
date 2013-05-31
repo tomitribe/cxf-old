@@ -292,10 +292,9 @@ public class JAXBExtensionHelper implements ExtensionSerializer, ExtensionDeseri
                 o = el.getValue();
             }
             
-            ExtensibilityElement el = o instanceof ExtensibilityElement ? (ExtensibilityElement)o : null;
-            if (null != el) {
-                el.setElementType(qname);
-            }
+            ExtensibilityElement el = o instanceof ExtensibilityElement ? (ExtensibilityElement)o 
+                : new JAXBExtensibilityElement(o);
+            el.setElementType(qname);
             return el;
         } catch (Exception ex) {
             throw new WSDLException(WSDLException.PARSER_ERROR,
@@ -306,9 +305,6 @@ public class JAXBExtensionHelper implements ExtensionSerializer, ExtensionDeseri
         }
     }
     
-    
-
-
     class MappingReaderDelegate extends StreamReaderDelegate {
         MappingReaderDelegate(XMLStreamReader reader) {
             super(reader);

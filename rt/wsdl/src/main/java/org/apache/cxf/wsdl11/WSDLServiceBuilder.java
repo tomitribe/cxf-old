@@ -79,6 +79,7 @@ import org.apache.cxf.service.model.ServiceSchemaInfo;
 import org.apache.cxf.service.model.UnwrappedOperationInfo;
 import org.apache.cxf.transport.DestinationFactory;
 import org.apache.cxf.transport.DestinationFactoryManager;
+import org.apache.cxf.wsdl.JAXBExtensibilityElement;
 import org.apache.cxf.wsdl.WSDLManager;
 import org.apache.cxf.wsdl.binding.WSDLBindingFactory;
 import org.apache.ws.commons.schema.XmlSchemaComplexContentExtension;
@@ -133,8 +134,12 @@ public class WSDLServiceBuilder {
     private void copyExtensors(AbstractPropertiesHolder info, List<?> extList) {
         if (info != null) {
             for (ExtensibilityElement ext : cast(extList, ExtensibilityElement.class)) {
-                if (!info.containsExtensor(ext)) {
-                    info.addExtensor(ext);
+                Object o = ext;
+                if (ext instanceof JAXBExtensibilityElement) {
+                    o = ((JAXBExtensibilityElement)ext).getValue();
+                }
+                if (!info.containsExtensor(o)) {
+                    info.addExtensor(o);
                 }
             }
         }
@@ -594,6 +599,7 @@ public class WSDLServiceBuilder {
             opInfo.setInput(input.getName(), minfo);
             buildMessage(minfo, input.getMessage());
             copyExtensors(minfo, input.getExtensibilityElements());
+            copyExtensors(minfo, input.getMessage().getExtensibilityElements());
             copyExtensionAttributes(minfo, input);
         }
         Output output = op.getOutput();
@@ -605,6 +611,7 @@ public class WSDLServiceBuilder {
             opInfo.setOutput(output.getName(), minfo);
             buildMessage(minfo, output.getMessage());
             copyExtensors(minfo, output.getExtensibilityElements());
+            copyExtensors(minfo, output.getMessage().getExtensibilityElements());
             copyExtensionAttributes(minfo, output);
         }
         Map<?, ?> m = op.getFaults();
