@@ -228,11 +228,11 @@ public class ReflectionServiceFactoryBean extends org.apache.cxf.service.factory
                 cls = ((Class<?>)obj).asSubclass(DataBinding.class);
             }
             try {
-                return cls.getConstructor(ReflectionServiceFactoryBean.class)
-                    .newInstance(this);
+                return cls.getConstructor(Boolean.TYPE, Map.class)
+                    .newInstance(this.isQualifyWrapperSchema(), this.getProperties());
             } catch (NoSuchMethodException nsme) {
                 //ignore, use the no-arg constructor
-            }
+            }            
             return cls.newInstance();
         } catch (Exception e) {
             throw new ServiceConstructionException(e);
