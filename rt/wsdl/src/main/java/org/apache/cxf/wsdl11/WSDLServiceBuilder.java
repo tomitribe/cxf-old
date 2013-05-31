@@ -599,7 +599,6 @@ public class WSDLServiceBuilder {
             opInfo.setInput(input.getName(), minfo);
             buildMessage(minfo, input.getMessage());
             copyExtensors(minfo, input.getExtensibilityElements());
-            copyExtensors(minfo, input.getMessage().getExtensibilityElements());
             copyExtensionAttributes(minfo, input);
         }
         Output output = op.getOutput();
@@ -611,7 +610,6 @@ public class WSDLServiceBuilder {
             opInfo.setOutput(output.getName(), minfo);
             buildMessage(minfo, output.getMessage());
             copyExtensors(minfo, output.getExtensibilityElements());
-            copyExtensors(minfo, output.getMessage().getExtensibilityElements());
             copyExtensionAttributes(minfo, output);
         }
         Map<?, ?> m = op.getFaults();

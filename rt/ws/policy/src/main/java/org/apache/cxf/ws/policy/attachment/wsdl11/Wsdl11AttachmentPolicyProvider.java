@@ -301,7 +301,7 @@ public class Wsdl11AttachmentPolicyProvider extends AbstractPolicyProvider {
         if (null == di) {
             return null;
         }
-        Definition def = (Definition)di.getProperty("org.apache.cxf.wsdl11.WSDLServiceBuilder.WSDL_DEFINITION");
+        Definition def = (Definition)di.getProperty("org.apache.cxf.wsdl11.WSDLServiceBuilder.DEFINITION");
         if (null == def) {
             return null;
         }
