@@ -94,7 +94,7 @@ import org.apache.cxf.service.model.ServiceModelUtil;
 import org.apache.cxf.transport.DestinationFactory;
 import org.apache.cxf.transport.DestinationFactoryManager;
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
-import org.apache.cxf.wsdl.EndpointReferenceUtils;
+import org.apache.cxf.ws.addressing.EndpointReferenceUtils;
 import org.apache.cxf.wsdl.WSDLManager;
 import org.apache.cxf.wsdl.http.AddressType;
 import org.apache.cxf.wsdl.service.factory.ReflectionServiceFactoryBean;
