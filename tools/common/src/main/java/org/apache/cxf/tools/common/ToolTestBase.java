@@ -25,6 +25,7 @@ import java.io.PrintStream;
 
 import org.apache.cxf.helpers.FileUtils;
 import org.apache.cxf.test.AbstractCXFTest;
+
 import org.junit.After;
 import org.junit.Before;
 
