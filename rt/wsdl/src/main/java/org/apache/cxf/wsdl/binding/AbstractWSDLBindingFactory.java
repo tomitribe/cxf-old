@@ -31,6 +31,7 @@ import javax.wsdl.extensions.ExtensibilityElement;
 import javax.xml.namespace.QName;
 
 import org.apache.cxf.Bus;
+import org.apache.cxf.binding.AbstractBindingFactory;
 import org.apache.cxf.service.model.AbstractPropertiesHolder;
 import org.apache.cxf.service.model.BindingInfo;
 import org.apache.cxf.service.model.BindingOperationInfo;
@@ -38,21 +39,21 @@ import org.apache.cxf.service.model.ServiceInfo;
 
 import static org.apache.cxf.helpers.CastUtils.cast;
 
-public abstract class AbstractBindingFactory extends AbstractBindingFactory 
+public abstract class AbstractWSDLBindingFactory extends AbstractBindingFactory 
                       implements WSDLBindingFactory {
 
-    public AbstractBindingFactory() {
+    public AbstractWSDLBindingFactory() {
     }
     
-    public AbstractBindingFactory(Collection<String> ns) {
+    public AbstractWSDLBindingFactory(Collection<String> ns) {
         super(ns);
     }
     
-    public AbstractBindingFactory(Bus b) {
+    public AbstractWSDLBindingFactory(Bus b) {
         super(b);
     }
     
-    public AbstractBindingFactory(Bus b, Collection<String> ns) {
+    public AbstractWSDLBindingFactory(Bus b, Collection<String> ns) {
         super(b, ns);
     }
     

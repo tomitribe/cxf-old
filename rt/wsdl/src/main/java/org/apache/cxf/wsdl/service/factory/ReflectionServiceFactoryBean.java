@@ -90,6 +90,7 @@ import org.apache.cxf.resource.ResourceManager;
 import org.apache.cxf.service.Service;
 import org.apache.cxf.service.ServiceImpl;
 import org.apache.cxf.service.ServiceModelSchemaValidator;
+import org.apache.cxf.service.factory.FactoryBeanListener.Event;
 import org.apache.cxf.service.factory.ServiceConstructionException;
 import org.apache.cxf.service.factory.SimpleMethodDispatcher;
 import org.apache.cxf.service.invoker.FactoryInvoker;
