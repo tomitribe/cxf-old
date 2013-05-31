@@ -39,10 +39,10 @@ import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.service.Service;
 import org.apache.cxf.service.ServiceImpl;
+import org.apache.cxf.service.factory.AbstractServiceFactoryBean;
+import org.apache.cxf.service.factory.ServiceConstructionException;
 import org.apache.cxf.service.model.ServiceInfo;
 import org.apache.cxf.wsdl.WSDLManager;
-import org.apache.cxf.wsdl.service.factory.AbstractServiceFactoryBean;
-import org.apache.cxf.wsdl.service.factory.ServiceConstructionException;
 import org.apache.ws.commons.schema.XmlSchemaException;
 
 public class WSDLServiceFactory extends AbstractServiceFactoryBean {

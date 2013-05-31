@@ -24,7 +24,6 @@ import javax.xml.namespace.QName;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.wsdl.WSDLManager;
-import org.apache.cxf.wsdl.service.factory.ReflectionServiceFactoryBean;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 

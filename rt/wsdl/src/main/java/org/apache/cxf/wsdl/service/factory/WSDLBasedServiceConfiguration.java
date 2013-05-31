@@ -21,7 +21,6 @@ package org.apache.cxf.wsdl.service.factory;
 import javax.wsdl.extensions.soap.SOAPBinding;
 
 import org.apache.cxf.service.model.BindingInfo;
-import org.apache.cxf.wsdl.service.factory.AbstractServiceConfiguration;
 
 /**
  * An AbstractServiceConfiguration that gets the style
