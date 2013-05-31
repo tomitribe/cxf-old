@@ -38,6 +38,7 @@ public final class XmlIoPlugin extends AbstractWSDLPlugin {
 
         xmlFormat = (XMLBindingMessageFormat)registry.createExtension(clz, ToolConstants.XML_FORMAT);
         xmlFormat.setRootNode(qname);
-        return xmlFormat;
+        //return new xmlFormat;
+        return null;
     }
 }

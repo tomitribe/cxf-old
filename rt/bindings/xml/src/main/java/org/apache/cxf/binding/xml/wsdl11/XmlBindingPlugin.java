@@ -36,6 +36,7 @@ public final class XmlBindingPlugin extends AbstractWSDLPlugin {
         xmlBinding = (XMLFormatBinding)registry.createExtension(Binding.class,
                                                                 ToolConstants.XML_BINDING_FORMAT);
 
-        return xmlBinding;
+        //return xmlBinding;
+        return null;
     }
 }
