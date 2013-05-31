@@ -76,7 +76,6 @@ import org.apache.cxf.transport.https.CertConstraintsInterceptor;
 import org.apache.cxf.transports.http.configuration.HTTPServerPolicy;
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
 import org.apache.cxf.ws.addressing.EndpointReferenceUtils;
-import org.apache.cxf.wsdl.WSDLLibrary;
 
 /**
  * Common base for HTTP Destination implementations.
@@ -487,7 +486,7 @@ public abstract class AbstractHTTPDestination
         if (pde != null) {
             server = pde.getServerEndpointPolicy(endpointInfo, this, new ServerPolicyCalculator());
         }
-        if (null == server && WSDLLibrary.isAvailable()) {
+        if (null == server) {
             server = endpointInfo.getTraversedExtensor(
                     new HTTPServerPolicy(), HTTPServerPolicy.class);
         }

@@ -28,11 +28,12 @@ import javax.xml.namespace.QName;
  * Implements the <code>ExtensibilityElement</code> interface.
  */
 public class TExtensibilityElementImpl
-    extends TExtensibilityElement
     implements ExtensibilityElement {
 
     @XmlTransient()
     QName elementType;
+    
+    private Boolean required;
 
     /**
      * Returns the type of this extensibility element.
@@ -56,7 +57,7 @@ public class TExtensibilityElementImpl
      * @return Boolean
      */
     public Boolean getRequired() {
-        return isSetRequired() ? isRequired() : null;
+        return required;
     }
     public void setRequired(Boolean value) {
         this.required = value;

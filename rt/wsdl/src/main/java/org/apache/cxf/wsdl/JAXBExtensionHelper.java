@@ -65,7 +65,7 @@ import org.apache.cxf.staxutils.StaxUtils;
 public class JAXBExtensionHelper implements ExtensionSerializer, ExtensionDeserializer {
     private static final Logger LOG = LogUtils.getL7dLogger(JAXBExtensionHelper.class);
 
-    final Class<? extends ExtensibilityElement> typeClass;
+    final Class<?> typeClass;
     final String namespace;
     String jaxbNamespace;
 
@@ -73,7 +73,7 @@ public class JAXBExtensionHelper implements ExtensionSerializer, ExtensionDeseri
     private Set<Class<?>> classes;
 
       
-    public JAXBExtensionHelper(Class<? extends ExtensibilityElement> cls,
+    public JAXBExtensionHelper(Class<?> cls,
                                String ns) {
         typeClass = cls;
         namespace = ns;
@@ -106,13 +106,13 @@ public class JAXBExtensionHelper implements ExtensionSerializer, ExtensionDeseri
     }
     public static void addExtensions(ExtensionRegistry registry,
                                      Class<?> parentType,
-                                     Class<? extends ExtensibilityElement> cls)
+                                     Class<?> cls)
         throws JAXBException {
         addExtensions(registry, parentType, cls, null);
     }
     public static void addExtensions(ExtensionRegistry registry,
                                      Class<?> parentType,
-                                     Class<? extends ExtensibilityElement> cls,
+                                     Class<?> cls,
                                      String namespace) throws JAXBException {
         
         JAXBExtensionHelper helper = new JAXBExtensionHelper(cls, namespace);
