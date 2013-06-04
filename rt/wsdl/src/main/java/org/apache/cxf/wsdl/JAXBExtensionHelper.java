@@ -505,7 +505,9 @@ public class JAXBExtensionHelper implements ExtensionSerializer, ExtensionDeseri
         mv.visitEnd();
 
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "getRequired", "()Ljava/lang/Boolean;", null, null);
-        av0 = mv.visitAnnotation("Ljavax/xml/bind/annotation/XmlTransient;", true);
+        av0 = mv.visitAnnotation("Ljavax/xml/bind/annotation/XmlAttribute;", true);
+        av0.visit("name", "required");
+        av0.visit("namespace", "http://schemas.xmlsoap.org/wsdl/required");
         av0.visitEnd();
         mv.visitCode();
         l0 = helper.createLabel();

@@ -510,7 +510,7 @@ public class WSDLServiceBuilder {
                 if (bop.getBindingOutput() != null) {
                     outName = bop.getBindingOutput().getName();
                 }
-                BindingOperationInfo bop2 = bi.buildOperation(new QName(service.getName().getNamespaceURI(),
+                BindingOperationInfo bop2 = bi.buildOperation(new QName(binding.getQName().getNamespaceURI(),
                                                                         bop.getName()), inName, outName);
                 if (bop2 != null) {
 

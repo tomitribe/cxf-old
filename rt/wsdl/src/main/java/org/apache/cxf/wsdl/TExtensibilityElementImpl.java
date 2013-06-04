@@ -21,6 +21,7 @@ package org.apache.cxf.wsdl;
 
 
 import javax.wsdl.extensions.ExtensibilityElement;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.namespace.QName;
 
@@ -39,6 +40,7 @@ public class TExtensibilityElementImpl
      * Returns the type of this extensibility element.
      * @return QName the type of this element.
      */
+    @XmlTransient()
     public QName getElementType() {
         return elementType;
     }
@@ -56,6 +58,7 @@ public class TExtensibilityElementImpl
      * Relates to the wsdl:required attribute.
      * @return Boolean
      */
+    @XmlAttribute(name = "required", namespace = "http://schemas.xmlsoap.org/wsdl/")
     public Boolean getRequired() {
         return required;
     }
