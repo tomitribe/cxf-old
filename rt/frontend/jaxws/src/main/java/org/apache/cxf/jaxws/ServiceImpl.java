@@ -37,6 +37,7 @@ import javax.jws.WebService;
 import javax.wsdl.Definition;
 import javax.wsdl.Port;
 import javax.wsdl.extensions.ExtensibilityElement;
+import javax.wsdl.extensions.http.HTTPAddress;
 import javax.wsdl.extensions.soap.SOAPAddress;
 import javax.wsdl.extensions.soap12.SOAP12Address;
 import javax.wsdl.extensions.soap12.SOAP12Binding;
@@ -189,6 +190,8 @@ public class ServiceImpl extends ServiceDelegate {
                         address = ((SOAP12Address)e).getLocationURI();
                     } else if (e instanceof SOAPAddress) {
                         address = ((SOAPAddress)e).getLocationURI();                        
+                    } else if (e instanceof HTTPAddress) {
+                        address = ((HTTPAddress)e).getLocationURI();
                     }
                 }
                 addPort(name, bindingID, address);

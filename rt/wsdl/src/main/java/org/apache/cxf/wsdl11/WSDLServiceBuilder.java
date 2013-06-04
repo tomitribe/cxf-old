@@ -56,6 +56,7 @@ import org.w3c.dom.Element;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusException;
+import org.apache.cxf.binding.AbstractBindingFactory;
 import org.apache.cxf.binding.BindingFactory;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.xmlschema.SchemaCollection;
@@ -491,6 +492,8 @@ public class WSDLServiceBuilder {
             bi = wFactory.createBindingInfo(service, binding, ns.toString());
             copyExtensors(bi, binding.getExtensibilityElements());
             copyExtensionAttributes(bi, binding);
+        } else if (factory instanceof AbstractBindingFactory) {
+            bi = ((AbstractBindingFactory)factory).createBindingInfo(service, ns.toString(), null);
         }
         if (bi == null) {
             bi = new BindingInfo(service, ns.toString());
