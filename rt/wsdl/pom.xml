@@ -43,6 +43,10 @@
             <groupId>wsdl4j</groupId>
             <artifactId>wsdl4j</artifactId>
         </dependency>
+        <dependency>
+            <groupId>${cxf.asm.groupId}</groupId>
+            <artifactId>${cxf.asm.artifactId}</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>junit</groupId>

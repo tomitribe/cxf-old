@@ -153,7 +153,7 @@ public class ASMHelper {
         return buf.toString();
     }
     
-    protected static String periodToSlashes(String s) {
+    public static String periodToSlashes(String s) {
         char ch[] = s.toCharArray();
         for (int x = 0; x < ch.length; x++) {
             if (ch[x] == '.') {
@@ -433,6 +433,9 @@ public class ASMHelper {
         void visitFieldInsn(int getfield, String periodToSlashes,
                             String string, String string2);
         void visitJumpInsn(int ifnonnull, @UnwrapParam(typeMethodName = "realType") Label nonNullLabel);
+        
+        @WrapReturn(AnnotationVisitor.class)
+        AnnotationVisitor visitAnnotation(String cls, boolean b);
     }
     public interface AnnotationVisitor {
         void visit(String arg0, @UnwrapParam(typeMethodName = "realType") ASMType arg1);

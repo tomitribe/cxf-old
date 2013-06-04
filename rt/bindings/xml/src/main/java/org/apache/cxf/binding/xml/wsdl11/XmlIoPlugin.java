@@ -38,7 +38,11 @@ public final class XmlIoPlugin extends AbstractWSDLPlugin {
         QName qname = getOption(args, QName.class);
 
         ExtensibilityElement ext = registry.createExtension(clz, ToolConstants.XML_FORMAT);
-        xmlFormat = (XMLBindingMessageFormat)((JAXBExtensibilityElement)ext).getValue();
+        if (ext instanceof JAXBExtensibilityElement) {
+            xmlFormat = (XMLBindingMessageFormat)((JAXBExtensibilityElement)ext).getValue();
+        } else {
+            xmlFormat = (XMLBindingMessageFormat)ext;
+        }
         xmlFormat.setRootNode(qname);
         return ext;
     }

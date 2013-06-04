@@ -53,6 +53,13 @@ import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.jaxb.JAXBContextCache;
 import org.apache.cxf.common.jaxb.JAXBContextCache.CachedContextAndSchemas;
 import org.apache.cxf.common.logging.LogUtils;
+import org.apache.cxf.common.util.ASMHelper;
+import org.apache.cxf.common.util.ASMHelper.AnnotationVisitor;
+import org.apache.cxf.common.util.ASMHelper.ClassWriter;
+import org.apache.cxf.common.util.ASMHelper.FieldVisitor;
+import org.apache.cxf.common.util.ASMHelper.Label;
+import org.apache.cxf.common.util.ASMHelper.MethodVisitor;
+import org.apache.cxf.common.util.ASMHelper.Opcodes;
 import org.apache.cxf.common.util.PackageUtils;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.helpers.CastUtils;
@@ -67,6 +74,7 @@ public class JAXBExtensionHelper implements ExtensionSerializer, ExtensionDeseri
 
     final Class<?> typeClass;
     final String namespace;
+    Class<?> extensionClass;
     String jaxbNamespace;
 
     private JAXBContext context;
@@ -77,10 +85,14 @@ public class JAXBExtensionHelper implements ExtensionSerializer, ExtensionDeseri
                                String ns) {
         typeClass = cls;
         namespace = ns;
+        extensionClass = cls;
     }
     
     void setJaxbNamespace(String ns) {
         jaxbNamespace = ns;
+    }
+    void setExtensionClass(Class<?> cls) {
+        extensionClass = cls;
     }
     
     public static void addExtensions(ExtensionRegistry registry, String parentType, String elementType)
@@ -117,6 +129,7 @@ public class JAXBExtensionHelper implements ExtensionSerializer, ExtensionDeseri
         
         JAXBExtensionHelper helper = new JAXBExtensionHelper(cls, namespace);
         boolean found = false;
+        Class<?> extCls = cls;
         try {
             Class<?> objectFactory = Class.forName(PackageUtils.getPackageName(cls) + ".ObjectFactory",
                                                    true, cls.getClassLoader());
@@ -133,9 +146,13 @@ public class JAXBExtensionHelper implements ExtensionSerializer, ExtensionDeseri
                             helper.setJaxbNamespace(elementDecl.namespace());
                         }
                         QName elementType = new QName(ns, name);
+                        if (!ExtensibilityElement.class.isAssignableFrom(extCls)) {
+                            extCls = createExtensionClass(cls, elementType);
+                            helper.setExtensionClass(extCls);
+                        }
                         registry.registerDeserializer(parentType, elementType, helper); 
                         registry.registerSerializer(parentType, elementType, helper);                         
-                        registry.mapExtensionTypes(parentType, elementType, cls);
+                        registry.mapExtensionTypes(parentType, elementType, extCls);
                         found = true;
                     }                    
                 }
@@ -166,9 +183,13 @@ public class JAXBExtensionHelper implements ExtensionSerializer, ExtensionDeseri
                         ns = namespace;
                     }
                     QName elementType = new QName(ns, name);
+                    if (!ExtensibilityElement.class.isAssignableFrom(extCls)) {
+                        extCls = createExtensionClass(cls, elementType);
+                        helper.setExtensionClass(extCls);
+                    }
                     registry.registerDeserializer(parentType, elementType, helper); 
                     registry.registerSerializer(parentType, elementType, helper);                         
-                    registry.mapExtensionTypes(parentType, elementType, cls);
+                    registry.mapExtensionTypes(parentType, elementType, extCls);
 
                     found = true;
                 }
@@ -181,11 +202,13 @@ public class JAXBExtensionHelper implements ExtensionSerializer, ExtensionDeseri
         }
     }
 
+
+
     private synchronized JAXBContext getContext() throws JAXBException {
         if (context == null || classes == null) {
             try {
                 CachedContextAndSchemas ccs 
-                    = JAXBContextCache.getCachedContextAndSchemas(typeClass);
+                    = JAXBContextCache.getCachedContextAndSchemas(typeClass, extensionClass);
                 classes = ccs.getClasses();
                 context = ccs.getContext();
             } catch (JAXBException e) {
@@ -281,11 +304,11 @@ public class JAXBExtensionHelper implements ExtensionSerializer, ExtensionDeseri
         
             Object o = null;
             if (namespace == null) {
-                o = u.unmarshal(element);
+                o = u.unmarshal(element, extensionClass);
             } else {
                 reader = StaxUtils.createXMLStreamReader(element);
                 reader = new MappingReaderDelegate(reader);
-                o = u.unmarshal(reader);
+                o = u.unmarshal(reader, extensionClass);
             }
             if (o instanceof JAXBElement<?>) {
                 JAXBElement<?> el = (JAXBElement<?>)o;
@@ -377,5 +400,129 @@ public class JAXBExtensionHelper implements ExtensionSerializer, ExtensionDeseri
         
     };
     
+    //CHECKSTYLE:OFF - very complicated ASM code
+    private static Class<?> createExtensionClass(Class<?> cls, QName qname) {
+        
+        String className = ASMHelper.periodToSlashes(cls.getName());
+        ASMHelper helper = new ASMHelper();
+        Class<?> extClass = helper.findClass(className + "Extensibility", cls);
+        if (extClass != null) {
+            return extClass;
+        }
+        
+        ClassWriter cw = helper.createClassWriter();
+        FieldVisitor fv;
+        MethodVisitor mv;
+        AnnotationVisitor av0;
+        
+        cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, 
+                 className + "Extensibility", null, 
+                 className, 
+                 new String[] {"javax/wsdl/extensions/ExtensibilityElement"});
+
+        cw.visitSource(cls.getSimpleName() + "Extensibility.java", null);
+        fv = cw.visitField(0, "qn", "Ljavax/xml/namespace/QName;", null, null);
+        fv.visitEnd();
+
+        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+        mv.visitCode();
+        Label l0 = helper.createLabel();
+        mv.visitLabel(l0);
+        mv.visitLineNumber(33, l0);
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, className, "<init>", "()V");
+        Label l1 = helper.createLabel();
+        mv.visitLabel(l1);
+        mv.visitLineNumber(31, l1);
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitTypeInsn(Opcodes.NEW, "javax/xml/namespace/QName");
+        mv.visitInsn(Opcodes.DUP);
+        
+        mv.visitLdcInsn(qname.getNamespaceURI());
+        mv.visitLdcInsn(qname.getLocalPart());
+        
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "javax/xml/namespace/QName",
+                           "<init>", "(Ljava/lang/String;Ljava/lang/String;)V");
+        mv.visitFieldInsn(Opcodes.PUTFIELD, className + "Extensibility",
+                          "qn", "Ljavax/xml/namespace/QName;");
+        Label l2 = helper.createLabel();
+        mv.visitLabel(l2);
+        mv.visitLineNumber(34, l2);
+        mv.visitInsn(Opcodes.RETURN);
+        Label l3 = helper.createLabel();
+        mv.visitLabel(l3);
+       
+        mv.visitLocalVariable("this", "L" + className + "Extensibility;", null, l0, l3, 0);
+        mv.visitMaxs(5, 1);
+        mv.visitEnd();
+
+        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "setElementType", "(Ljavax/xml/namespace/QName;)V", null, null);
+        mv.visitCode();
+        l0 = helper.createLabel();
+        mv.visitLabel(l0);
+        mv.visitLineNumber(37, l0);
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitVarInsn(Opcodes.ALOAD, 1);
+        mv.visitFieldInsn(Opcodes.PUTFIELD, className + "Extensibility", "qn", "Ljavax/xml/namespace/QName;");
+        l1 = helper.createLabel();
+        mv.visitLabel(l1);
+        mv.visitLineNumber(38, l1);
+        mv.visitInsn(Opcodes.RETURN);
+        l2 = helper.createLabel();
+        mv.visitLabel(l2);
+        mv.visitLocalVariable("this", "L" + className + "Extensibility;", null, l0, l2, 0);
+        mv.visitLocalVariable("elementType", "Ljavax/xml/namespace/QName;", null, l0, l2, 1);
+        mv.visitMaxs(2, 2);
+        mv.visitEnd();
+
+        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "getElementType", "()Ljavax/xml/namespace/QName;", null, null);
+        av0 = mv.visitAnnotation("Ljavax/xml/bind/annotation/XmlTransient;", true);
+        av0.visitEnd();
+        mv.visitCode();
+        l0 = helper.createLabel();
+        mv.visitLabel(l0);
+        mv.visitLineNumber(40, l0);
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitFieldInsn(Opcodes.GETFIELD, className + "Extensibility", "qn", "Ljavax/xml/namespace/QName;");
+        mv.visitInsn(Opcodes.ARETURN);
+        l1 = helper.createLabel();
+        mv.visitLabel(l1);
+        mv.visitLocalVariable("this", "L" + className + "Extensibility;", null, l0, l1, 0);
+        mv.visitMaxs(1, 1);
+        mv.visitEnd();
+
+        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "setRequired", "(Ljava/lang/Boolean;)V", null, null);
+        mv.visitCode();
+        l0 = helper.createLabel();
+        mv.visitLabel(l0);
+        mv.visitLineNumber(44, l0);
+        mv.visitInsn(Opcodes.RETURN);
+        l1 = helper.createLabel();
+        mv.visitLabel(l1);
+        mv.visitLocalVariable("this", "L" + className + "Extensibility;", null, l0, l1, 0);
+        mv.visitLocalVariable("required", "Ljava/lang/Boolean;", null, l0, l1, 1);
+        mv.visitMaxs(0, 2);
+        mv.visitEnd();
+
+        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "getRequired", "()Ljava/lang/Boolean;", null, null);
+        av0 = mv.visitAnnotation("Ljavax/xml/bind/annotation/XmlTransient;", true);
+        av0.visitEnd();
+        mv.visitCode();
+        l0 = helper.createLabel();
+        mv.visitLabel(l0);
+        mv.visitLineNumber(46, l0);
+        mv.visitInsn(Opcodes.ACONST_NULL);
+        mv.visitInsn(Opcodes.ARETURN);
+        l1 = helper.createLabel();
+        mv.visitLabel(l1);
+        mv.visitLocalVariable("this", "L" + className + "Extensibility;", null, l0, l1, 0);
+        mv.visitMaxs(1, 1);
+        mv.visitEnd();
+
+        cw.visitEnd();
+
+        byte[] bytes = cw.toByteArray();
+        return helper.loadClass(className + "Extensibility", cls, bytes);
+    }    
 
 }

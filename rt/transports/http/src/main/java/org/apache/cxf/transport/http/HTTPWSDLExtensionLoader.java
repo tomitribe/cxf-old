@@ -40,8 +40,6 @@ public final class HTTPWSDLExtensionLoader implements WSDLExtensionLoader {
                        org.apache.cxf.transports.http.configuration.HTTPClientPolicy.class);
         createExtensor(manager, javax.wsdl.Port.class,
                        org.apache.cxf.transports.http.configuration.HTTPServerPolicy.class);
-        createExtensor(manager, javax.wsdl.Port.class,
-                       org.apache.cxf.wsdl.http.AddressType.class);
     }
     public void createExtensor(WSDLManager manager,
                                 Class<?> parentType,
