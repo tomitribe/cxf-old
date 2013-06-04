@@ -26,6 +26,7 @@ import org.apache.cxf.common.injection.NoJSR250Annotations;
 import org.apache.cxf.wsdl.JAXBExtensionHelper;
 import org.apache.cxf.wsdl.WSDLExtensionLoader;
 import org.apache.cxf.wsdl.WSDLManager;
+import org.apache.cxf.wsdl.http.AddressType;
 
 /**
  * 
@@ -40,6 +41,8 @@ public final class HTTPWSDLExtensionLoader implements WSDLExtensionLoader {
                        org.apache.cxf.transports.http.configuration.HTTPClientPolicy.class);
         createExtensor(manager, javax.wsdl.Port.class,
                        org.apache.cxf.transports.http.configuration.HTTPServerPolicy.class);
+        createExtensor(manager, javax.wsdl.Port.class,
+                       AddressType.class);
     }
     public void createExtensor(WSDLManager manager,
                                 Class<?> parentType,
