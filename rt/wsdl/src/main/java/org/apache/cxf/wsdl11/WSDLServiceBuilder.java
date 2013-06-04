@@ -492,11 +492,15 @@ public class WSDLServiceBuilder {
             bi = wFactory.createBindingInfo(service, binding, ns.toString());
             copyExtensors(bi, binding.getExtensibilityElements());
             copyExtensionAttributes(bi, binding);
-        } else if (factory instanceof AbstractBindingFactory) {
-            bi = ((AbstractBindingFactory)factory).createBindingInfo(service, ns.toString(), null);
         }
         if (bi == null) {
-            bi = new BindingInfo(service, ns.toString());
+            boolean onlyExtensors = false;
+            if (factory instanceof AbstractBindingFactory) {
+                bi = ((AbstractBindingFactory)factory).createBindingInfo(service, ns.toString(), null);
+                onlyExtensors = true;
+            } else {
+                bi = new BindingInfo(service, ns.toString());
+            }
             bi.setName(binding.getQName());
             copyExtensors(bi, binding.getExtensibilityElements());
             copyExtensionAttributes(bi, binding);
@@ -513,13 +517,21 @@ public class WSDLServiceBuilder {
                 if (bop.getBindingOutput() != null) {
                     outName = bop.getBindingOutput().getName();
                 }
-                BindingOperationInfo bop2 = bi.buildOperation(new QName(binding.getQName().getNamespaceURI(),
-                                                                        bop.getName()), inName, outName);
+                BindingOperationInfo bop2 = null;
+                if (onlyExtensors) {
+                    bop2 = bi.getOperation(new QName(binding.getQName().getNamespaceURI(),
+                                                       bop.getName()));
+                } else {
+                    bop2 = bi.buildOperation(new QName(binding.getQName().getNamespaceURI(),
+                                                       bop.getName()), inName, outName);
+                    if (bop2 != null) {
+                        bi.addOperation(bop2);
+                    }
+                }
                 if (bop2 != null) {
 
                     copyExtensors(bop2, bop.getExtensibilityElements());
                     copyExtensionAttributes(bop2, bop);
-                    bi.addOperation(bop2);
                     if (bop.getBindingInput() != null) {
                         copyExtensors(bop2.getInput(), bop.getBindingInput().getExtensibilityElements());
                         copyExtensionAttributes(bop2.getInput(), bop.getBindingInput());
