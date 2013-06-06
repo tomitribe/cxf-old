@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.cxf.common.classloader;
+package org.apache.cxf.jca.core.classloader;
 
 
 import java.io.File;
