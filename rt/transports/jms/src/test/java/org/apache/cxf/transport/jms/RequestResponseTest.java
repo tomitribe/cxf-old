@@ -201,25 +201,6 @@ public class RequestResponseTest extends AbstractJMSTester {
         setupMessageHeader(outMessage, null);
         final JMSDestination destination = setupJMSDestination(false);
         
-<<<<<<< HEAD
-        // set up MessageObserver for handling the conduit message
-        MessageObserver observer = new MessageObserver() {
-            public void onMessage(Message m) {
-                Exchange exchange = new ExchangeImpl();
-                exchange.setInMessage(m);
-                m.setExchange(exchange);
-                verifyReceivedMessage(m);
-                verifyHeaders(m, outMessage);
-                // setup the message for
-                Conduit backConduit;
-                try {
-                    backConduit = destination.getBackChannel(m, null, null);
-                    // wait for the message to be got from the conduit
-                    Message replyMessage = new MessageImpl();
-                    sendoutMessage(backConduit, replyMessage, true);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-=======
         try {
             // set up MessageObserver for handling the conduit message
             MessageObserver observer = new MessageObserver() {
@@ -232,14 +213,13 @@ public class RequestResponseTest extends AbstractJMSTester {
                     // setup the message for
                     Conduit backConduit;
                     try {
-                        backConduit = destination.getBackChannel(m);
+                        backConduit = destination.getBackChannel(m, null, null);
                         // wait for the message to be got from the conduit
                         Message replyMessage = new MessageImpl();
                         sendoutMessage(backConduit, replyMessage, true);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
->>>>>>> 8512bd8... Update to use ActiveMQ 5.8 for testing (and the pom changes should allow much easier change to 5.9
                 }
             };
             destination.setMessageObserver(observer);
