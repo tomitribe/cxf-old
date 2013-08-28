@@ -201,6 +201,7 @@ public class RequestResponseTest extends AbstractJMSTester {
         setupMessageHeader(outMessage, null);
         final JMSDestination destination = setupJMSDestination(false);
         
+<<<<<<< HEAD
         // set up MessageObserver for handling the conduit message
         MessageObserver observer = new MessageObserver() {
             public void onMessage(Message m) {
@@ -218,28 +219,41 @@ public class RequestResponseTest extends AbstractJMSTester {
                     sendoutMessage(backConduit, replyMessage, true);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
+=======
+        try {
+            // set up MessageObserver for handling the conduit message
+            MessageObserver observer = new MessageObserver() {
+                public void onMessage(Message m) {
+                    Exchange exchange = new ExchangeImpl();
+                    exchange.setInMessage(m);
+                    m.setExchange(exchange);
+                    verifyReceivedMessage(m);
+                    verifyHeaders(m, outMessage);
+                    // setup the message for
+                    Conduit backConduit;
+                    try {
+                        backConduit = destination.getBackChannel(m);
+                        // wait for the message to be got from the conduit
+                        Message replyMessage = new MessageImpl();
+                        sendoutMessage(backConduit, replyMessage, true);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+>>>>>>> 8512bd8... Update to use ActiveMQ 5.8 for testing (and the pom changes should allow much easier change to 5.9
                 }
-            }
-        };
-        destination.setMessageObserver(observer);
-        // set is oneway false for get response from destination
-        sendoutMessage(conduit, outMessage, false);
-        // wait for the message to be got from the destination,
-        // create the thread to handler the Destination incoming message
-
-        waitForReceiveInMessage();
-        verifyReceivedMessage(inMessage);
-        // wait for a while for the jms session recycling
-
-        inMessage = null;
-        // Send a second message to check for an issue
-        // Where the session was closed the second time
-        sendoutMessage(conduit, outMessage, false);
-        waitForReceiveInMessage();
-        verifyReceivedMessage(inMessage);
-
-        conduit.close();
-        destination.shutdown();
+            };
+            destination.setMessageObserver(observer);
+            // set is oneway false for get response from destination
+            sendoutMessage(conduit, outMessage, false);
+            // wait for the message to be got from the destination,
+            // create the thread to handler the Destination incoming message
+    
+            waitForReceiveInMessage();
+            verifyReceivedMessage(inMessage);
+        } finally {
+            conduit.close();
+            destination.shutdown();
+        }
     }
 
 
